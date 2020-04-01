@@ -1,6 +1,8 @@
 #ifndef CORR_HPP
 #define CORR_HPP
 
+#include <cmath>
+
 #include "defs.hpp"
 #include "io_files.hpp"
 
@@ -9,7 +11,7 @@ class Corr {
     public:
         // Data
         struct corr raw;
-        struct corr central;
+        struct corr cent;
 
         // Methods
         Corr( const char*, const unsigned, 

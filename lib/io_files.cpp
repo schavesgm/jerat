@@ -1,10 +1,10 @@
-#include "io_files.h"
+#include "io_files.hpp"
 
-struct Matrix load_data( 
+struct corr load_data( 
     const char file_name[255], const unsigned row_size, 
-    const unsigned col_size, std::string comm_char,
-    const bool res_bool, const unsigned res_col, 
-    const double res_val ) {
+    const unsigned col_size, const unsigned time_extent, 
+    std::string comm_char, const bool res_bool, 
+    const unsigned res_col, const double res_val ) {
     /*
        Function to load data from file. The function is able to skip
        comments inside the file. Default comment character is #.
@@ -46,6 +46,6 @@ struct Matrix load_data(
         }
     }
     in.close();
-    struct Matrix data = { store, row_size, col_size };
+    struct corr data = { store, row_size, col_size, time_extent };
     return data;
 }

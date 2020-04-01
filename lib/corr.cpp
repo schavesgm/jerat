@@ -15,6 +15,9 @@ void Corr::cent_corr( const unsigned col ) {
     The central value is defined as,
 
         \bar{C}(\tau) = 1/N_C \sum_i^{N_C} C_i(\tau)
+    its error is defined as,
+        Var(\bar{C}(\tau)) = 1/N_C \sum_i^{N_C} 
+                ( C_i(\tau) - \bar{C}(\tau )^2
 
     Arguments:
         data (struct corr):
@@ -28,7 +31,7 @@ void Corr::cent_corr( const unsigned col ) {
     unsigned n_tau = this->raw.time_extent;
     unsigned n_configs = rows / n_tau;
 
-    double* central = new double[n_tau];
+    double* central = new double[n_tau * 2];
 
     double aux_mean;
     unsigned index;
@@ -39,8 +42,21 @@ void Corr::cent_corr( const unsigned col ) {
             index = ( nc * n_tau + nt ) * cols + col;
             aux_mean += this->raw.data[index];
         }
-        central[nt] = aux_mean / n_configs;
+        central[nt * 2 + 0] = aux_mean / n_configs;
     }
 
-    this->central = { central, n_tau, 1, n_tau };
+    double aux_stde, value;
+    // Now calculate its variance
+    for( unsigned nt = 0; nt < n_tau; nt++ ) {
+        aux_stde = 0.0;
+        for ( unsigned nc = 0; nc < n_configs; nc++ ) {
+            index = ( nc * n_tau + nt ) * cols + col;
+            value = this->raw.data[index] - central[nt * 2 + 0];
+            aux_stde += value * value;
+        }
+        central[nt * 2 + 1] = aux_stde / ( n_configs );
+    }
+
+
+    this->cent = { central, n_tau, 2, n_tau };
 }
