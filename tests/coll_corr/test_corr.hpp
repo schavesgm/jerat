@@ -13,7 +13,7 @@ TEST_CASE( "Correlation function class", "[Corr]" ) {
 
     SECTION( "Test constructor" ) {
 
-        /// Generate a Corr object
+        // Generate a Corr object
         Corr corr( file_name, row_size, col_size, time_extent );
         REQUIRE( corr.raw.row_size == row_size );
         REQUIRE( corr.raw.col_size == col_size );
@@ -23,7 +23,8 @@ TEST_CASE( "Correlation function class", "[Corr]" ) {
     }
 
     SECTION( "Test central value" ) {
-        /// Generate a Corr object
+
+        // Generate a Corr object
         Corr corr( file_name, row_size, col_size, time_extent );
         corr.cent_corr( 1 );
 
@@ -48,7 +49,21 @@ TEST_CASE( "Correlation function class", "[Corr]" ) {
                 Approx( 0.741828 ) );
         REQUIRE( corr.cent.data[time_extent * 2 - 1] == \
                 Approx( 0.000554 ).margin( 0.00001 ) );
+    }
+    SECTION( "Test signal to noise" ) {
 
+        // Generate a Corr object
+        Corr corr( file_name, row_size, col_size, time_extent );
+        corr.sig_to_noise();
+
+        // Check dimensions
+        REQUIRE( corr.stn.time_extent == corr.stn.row_size );
+        REQUIRE( corr.stn.col_size == 1 );
+
+        // Check the values
+        REQUIRE( corr.stn.data[0] == Approx( 53.2299 ) );
+        REQUIRE( corr.stn.data[1] == Approx( 32.2152 ) );
+        REQUIRE( corr.stn.data[time_extent-1] == Approx( 31.511 ) );
     }
 }
 #endif
