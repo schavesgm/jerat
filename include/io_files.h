@@ -1,6 +1,7 @@
 #ifndef IO_FILES_HPP
 #define IO_FILES_HPP
 
+#include <iostream>
 #include <fstream>          // Used to load data from file
 #include <string>           // Used to load data from file
 #include <vector>           // Used to load data from file
@@ -11,9 +12,7 @@
 #include "defs.h"
 
 struct matrix load_data( 
-    const char, const unsigned, const unsigned, std::string,
-    const bool, const unsigned, const double );
-
-#include "../lib/io_files.cpp"
+    const char*, const unsigned, const unsigned, std::string = "#",
+    const bool = false, const unsigned = 0, const double = 1.0 );
 
 #endif

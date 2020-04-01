@@ -1,7 +1,8 @@
 #include <iostream>
 
 // Load headers 
-#include "include/io_files.h" // IO management
+#include "defs.h"
+#include "io_files.h"
 
 int main() {
 
@@ -14,5 +15,6 @@ int main() {
     for( unsigned i = 0; i < 3 * data.col_size; i++ ) {
         std::cout << data.data[i] << std::endl;
     }
+    return 0;
 
 }
