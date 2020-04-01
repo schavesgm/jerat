@@ -11,5 +11,5 @@ INCLD = -I ../include
 OBJS = ../objs
 
 $(PROG):
-	$(CXX) -o $@ test.cpp $(OBJS)/io_files.o -I coll_IO \
-	    $(CATCH) $(INCLD)
+	$(CXX) -o $@ test.cpp $(OBJS)/io_files.o $(OBJS)/corr.o \
+	    -I coll_IO -I coll_corr $(CATCH) $(INCLD)

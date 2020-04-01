@@ -1,8 +1,10 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
+#include <iostream>
 
 // Include the test files
 #include "test_io.hpp"
+#include "test_corr.hpp"
 
 // TEST_CASE( "Testing IO", "[IO]" ) {
 // 
