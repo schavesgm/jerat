@@ -12,6 +12,7 @@ class Corr {
         // Data
         struct corr raw;
         struct corr cent;
+        struct corr stn;
 
         // Methods
         Corr( const char*, const unsigned, 
@@ -19,6 +20,10 @@ class Corr {
         
         // Generate the central value
         void cent_corr( const unsigned );
+
+        // Calculate signal to noise
+        void sig_to_noise();
+        
 
 };
 

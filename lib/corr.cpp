@@ -60,3 +60,26 @@ void Corr::cent_corr( const unsigned col ) {
 
     this->cent = { central, n_tau, 2, n_tau };
 }
+
+void Corr::sig_to_noise() {
+    /*
+       Method to calculate signal to noise in a correlation function.
+       The method implements,
+            StN(C(\tau)) = \bar{C}(\tau) / sqrt(Var(C(\tau))
+    */
+
+    // Make sure the central value is calculated
+    this->cent_corr(1);
+
+    unsigned n_tau = this->cent.time_extent;
+    unsigned sep = this->cent.col_size;
+    double* sig2noise = new double[n_tau];
+
+    for( unsigned nt = 0; nt < n_tau; nt++ ) { 
+        sig2noise[nt] = \
+            this->cent.data[nt * sep + 0] / \
+            std::sqrt( this->cent.data[nt * sep + 1] );
+    }
+
+    this->stn = { sig2noise, n_tau, 1, n_tau };
+}
