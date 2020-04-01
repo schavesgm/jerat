@@ -4,7 +4,7 @@
 // File to store definitions
 
 // Matrix structure
-struct matrix {
+struct Matrix {
     double* data;
     unsigned row_size, col_size;
 };

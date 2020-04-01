@@ -1,6 +1,6 @@
 #include "io_files.h"
 
-struct matrix load_data( 
+struct Matrix load_data( 
     const char file_name[255], const unsigned row_size, 
     const unsigned col_size, std::string comm_char,
     const bool res_bool, const unsigned res_col, 
@@ -46,6 +46,6 @@ struct matrix load_data(
         }
     }
     in.close();
-    struct matrix data = { store, row_size, col_size };
+    struct Matrix data = { store, row_size, col_size };
     return data;
 }

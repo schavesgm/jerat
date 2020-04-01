@@ -11,7 +11,7 @@
 // Load definitions
 #include "defs.h"
 
-struct matrix load_data( 
+struct Matrix load_data( 
     const char*, const unsigned, const unsigned, std::string = "#",
     const bool = false, const unsigned = 0, const double = 1.0 );
 
