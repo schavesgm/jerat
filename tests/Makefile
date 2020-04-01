@@ -1,4 +1,4 @@
-PROG = test.exec
+PROG = exec_tests
 
 CXX = g++
 CXFLAGS = -g -W
