@@ -40,9 +40,14 @@ class Corr {
         void cov_matrix( unsigned = 200 );
 
     private:
+        bool calc_boots = false;
         bool calc_central = false;     
         bool calc_sig2noi = false;     
         bool calc_tmax = false;
+        
+        double* avg( struct matrix );
+        double* var( struct matrix, double* );
+        struct matrix slice( struct matrix, const unsigned );
 
 
 

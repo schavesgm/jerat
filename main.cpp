@@ -16,17 +16,16 @@ int main() {
     //     std::cout << corr.raw.data[i] << std::endl;
     // }
 
-    // corr.cent_corr( 1 );
     // corr.sig_to_noise();
     // for( unsigned i = 0; i < time_extent; i++ ) {
     //     std::cout << corr.stn.data[i] << std::endl;
     // }
 
-    for ( unsigned i = 0; i < 20; i++ ) {
-        corr.get_tmin( 5 );
-        std::cout << corr.tmin << std::endl;
-    }
-    std::cout << corr.tmax << std::endl;
+    // for ( unsigned i = 0; i < 20; i++ ) {
+    //     corr.get_tmin( 5 );
+    //     std::cout << corr.tmin << std::endl;
+    // }
+    // std::cout << corr.tmax << std::endl;
 
     //corr.get_tmax( 1.0, 0.75 * time_extent );
     // corr.get_tmin( 10 );
