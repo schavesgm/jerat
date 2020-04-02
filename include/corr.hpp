@@ -15,7 +15,7 @@ class Corr {
         struct matrix best_est;
         struct matrix cent;
         struct matrix stn;
-        struct matrix cov;
+        struct matrix covmat;
 
         unsigned tmax, tmin;
 
@@ -38,7 +38,7 @@ class Corr {
         // Sample a t_min
         void get_tmin( unsigned ); 
         // Calculate the covariance matrix using bootstrap
-        void cov_matrix( unsigned = 200 );
+        void cov_matrix( unsigned, unsigned, unsigned = 200 );
 
     private:
         bool calc_boots = false;
@@ -46,8 +46,13 @@ class Corr {
         bool calc_sig2noi = false;     
         bool calc_tmax = false;
         
+        // Mean value of data
         double* avg( struct matrix );
+        // Variance of data
         double* var( struct matrix, double* );
+        // Covariance of data
+        double* cov( struct matrix );
+
         struct matrix reshape( 
             struct matrix, const unsigned[2], const unsigned = 1 );
 

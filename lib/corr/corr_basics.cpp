@@ -151,4 +151,66 @@ void Corr::sig_to_noise() {
     this->stn = { sig2noise, n_tau, 1, n_tau };
 }
 
+void Corr::cov_matrix( unsigned tmin, unsigned tmax, 
+        unsigned nboot ) {
+
+
+    // We need to include the last point
+    unsigned window = tmax - tmin + 1; 
+    unsigned rows = this->raw.row_size;
+    unsigned cols = this->raw.col_size;
+    unsigned n_tau = this->raw.time_extent;
+    unsigned n_configs = rows / n_tau;
+
+    std::uniform_int_distribution<int> dist(0, n_configs);
+
+    // Slice the matrix 
+    unsigned shape[2] = { n_configs, n_tau };
+    struct matrix get_col = this->reshape( this->raw, shape, 1 );
+
+    // Pointer and structure to hold the samples
+    double* hold_sample = new double[rows];
+    struct matrix resamp;
+
+    // Get the average and the variance for each sample
+    unsigned area = window * window;
+    double* hold_cov = new double[nboot * area];
+
+    // Auxiliary variables
+    unsigned index, pick_nc, aux_t;
+
+    // Pointers to hold the data
+    double* cov_sample;
+
+    for ( unsigned nb = 0; nb < nboot; nb++ ) {
+        // Generate a bootstrap resample
+        for ( unsigned nc = 0; nc < n_configs; nc++ ) {
+            pick_nc = dist(this->random_eng);
+            aux_t = tmin;
+            for ( unsigned nt = 0; nt < window + 1; nt++ ) {
+                index = pick_nc * n_tau + aux_t;
+                hold_sample[nc * window + nt] = get_col.data[index];
+                aux_t += 1;
+            }
+        }
+        // Calculate the average of that resample
+        resamp = { hold_sample, n_configs, window, n_tau };
+        cov_sample = this->cov( resamp );
+
+        // Fill the resampled matrix with the covariance
+        for ( unsigned nt = 0; nt < area; nt++ ) {
+            hold_cov[nb * area + nt] = cov_sample[nt];
+        }
+    }
+    
+    struct matrix est_cov = { hold_cov, nboot, area, n_tau };
+
+    // Calculate the average on all the resamples
+    double* best_cov = this->avg( est_cov );
+
+    delete [] hold_sample;
+    delete [] cov_sample;
+
+    this->covmat = { best_cov, n_tau, n_tau, n_tau };
+}
 

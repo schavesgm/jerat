@@ -12,8 +12,17 @@ int main() {
 
     Corr corr( file_name, row_size, col_size, time_extent, 123 );
 
-    // for( unsigned i = 0; i < row_size * col_size; i++ ) {
-    //     std::cout << corr.raw.data[i] << std::endl;
+    corr.boot_est( 5000 );
+    corr.cov_matrix( 1, 2, 5000 );
+    for ( unsigned i = 0; i < 2; i++ ) {
+        std::cout << corr.covmat.data[i * 2 + i] << " " <<
+        corr.best_est.data[(i+1) * 2 + 1] << std::endl;
+    }
+
+
+    // for( unsigned i = 0; i < time_extent; i++ ) {
+    //     std::cout << corr.best_est.data[i * 2] << " " <<
+    //         corr.best_est.data[i * 2 + 1] << std::endl;
     // }
 
     // corr.sig_to_noise();
