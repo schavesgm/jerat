@@ -2,3 +2,5 @@ fit_code
 Gen2l_48x32.meson.g5.cc
 objs
 prog
+exec_tests
+check.py
