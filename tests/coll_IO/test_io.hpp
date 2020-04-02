@@ -11,7 +11,7 @@ TEST_CASE( "Testing IO", "[IO]" ) {
     unsigned col_size = 3;
     unsigned time_extent = 48;
     
-    struct corr data = load_data( file_name, row_size, 
+    struct matrix data = load_data( file_name, row_size, 
             col_size, time_extent );
 
     REQUIRE( data.row_size == row_size );

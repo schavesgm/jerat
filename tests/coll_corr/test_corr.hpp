@@ -21,7 +21,7 @@ TEST_CASE( "Correlation function class", "[Corr]" ) {
         REQUIRE( corr.raw.data[0] == 0.0 );
         REQUIRE( corr.raw.data[row_size*col_size-col_size] == 47.0 );
     }
-    SECTION( "Test central value" ) {
+    SECTION( "Test central value -- Average and Variance" ) {
 
         // Generate a Corr object
         Corr corr( file_name, row_size, col_size, time_extent );
