@@ -67,16 +67,32 @@ TEST_CASE( "Correlation function class", "[Corr]" ) {
     SECTION( "Test maximum time" ) {
 
         // Generate a Corr object
-        int tmax;
         Corr corr( file_name, row_size, col_size, time_extent );
-        tmax = corr.get_tmax( 1.0, 0.75 * time_extent ); 
-        REQUIRE( tmax == 36 );
-        tmax = corr.get_tmax( 1.0, 0.5 * time_extent ); 
-        REQUIRE( tmax == 24 );
-        tmax = corr.get_tmax( 0.5, 0.5 * time_extent ); 
-        REQUIRE( tmax == 24 );
-        tmax = corr.get_tmax( 0.1, 0.5 * time_extent ); 
-        REQUIRE( tmax == 7 );
+        corr.get_tmax( 1.0, 0.75 * time_extent ); 
+
+        REQUIRE( corr.tmax == 36 );
+        corr.get_tmax( 1.0, 0.5 * time_extent ); 
+        REQUIRE( corr.tmax == 24 );
+        corr.get_tmax( 0.5, 0.5 * time_extent ); 
+        REQUIRE( corr.tmax == 24 );
+        corr.get_tmax( 0.1, 0.5 * time_extent ); 
+        REQUIRE( corr.tmax == 7 );
+    }
+    SECTION( "Test minimum time" ) {
+
+        // Generate a Corr object
+        Corr corr( file_name, row_size, col_size, time_extent, 123 );
+        corr.get_tmin( 10 );
+        REQUIRE( corr.tmin == 19 );
+        corr.get_tmin( 10 );
+        REQUIRE( corr.tmin == 19 );
+
+        Corr cpy( file_name, row_size, col_size, time_extent, 123 );
+        cpy.get_tmin( 5 );
+        REQUIRE( cpy.tmin == 22 );
+        cpy.get_tmin( 5 );
+        REQUIRE( cpy.tmin == 23 );
+
     }
 }
 #endif
