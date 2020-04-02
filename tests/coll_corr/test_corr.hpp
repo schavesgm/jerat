@@ -21,7 +21,6 @@ TEST_CASE( "Correlation function class", "[Corr]" ) {
         REQUIRE( corr.raw.data[0] == 0.0 );
         REQUIRE( corr.raw.data[row_size*col_size-col_size] == 47.0 );
     }
-
     SECTION( "Test central value" ) {
 
         // Generate a Corr object
@@ -64,6 +63,20 @@ TEST_CASE( "Correlation function class", "[Corr]" ) {
         REQUIRE( corr.stn.data[0] == Approx( 53.2299 ) );
         REQUIRE( corr.stn.data[1] == Approx( 32.2152 ) );
         REQUIRE( corr.stn.data[time_extent-1] == Approx( 31.511 ) );
+    }
+    SECTION( "Test maximum time" ) {
+
+        // Generate a Corr object
+        int tmax;
+        Corr corr( file_name, row_size, col_size, time_extent );
+        tmax = corr.get_tmax( 1.0, 0.75 * time_extent ); 
+        REQUIRE( tmax == 36 );
+        tmax = corr.get_tmax( 1.0, 0.5 * time_extent ); 
+        REQUIRE( tmax == 24 );
+        tmax = corr.get_tmax( 0.5, 0.5 * time_extent ); 
+        REQUIRE( tmax == 24 );
+        tmax = corr.get_tmax( 0.1, 0.5 * time_extent ); 
+        REQUIRE( tmax == 7 );
     }
 }
 #endif
