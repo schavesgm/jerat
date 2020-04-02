@@ -49,7 +49,9 @@ double* Corr::var( struct matrix data, double* average ) {
     return var_data;
 }
 
-struct matrix Corr::slice( struct matrix data, const unsigned col ) {
+struct matrix Corr::reshape( 
+    struct matrix data, const unsigned shape[2], 
+    const unsigned col ) {
     /*
        Method to slice a matrix into a vector in a given column. 
        The initial matrix has dimensions [rows,cols], the resuling
@@ -58,10 +60,14 @@ struct matrix Corr::slice( struct matrix data, const unsigned col ) {
     unsigned rows = data.row_size;
     unsigned cols = data.col_size;
 
+    unsigned fin_rows = shape[0];
+    unsigned fin_cols = shape[1];
+
     double* hold = new double[rows];
     for ( unsigned nr = 0; nr < rows; nr++ ) {
         hold[nr] = data.data[nr * cols + col];
     }
-    struct matrix ret = { hold, rows, 1, data.time_extent };
+    struct matrix ret = \
+        { hold, fin_rows, fin_cols, data.time_extent };
     return ret;
 }

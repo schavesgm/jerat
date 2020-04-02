@@ -15,74 +15,80 @@ Corr::Corr( const char* file_name, const unsigned row_size,
     this->random_eng.seed(seed);
 }
 
-// void Corr::boot_est( const unsigned nboot, const unsigned col ) {
-//     /*
-//        Method to generate a bootstrap estimation of the correlation
-//        function.
-//     */
-//     this->calc_boots = true;
-// 
-//     unsigned rows = this->raw.row_size;
-//     unsigned cols = this->raw.col_size;
-//     unsigned n_tau = this->raw.time_extent;
-//     unsigned n_configs = rows / n_tau;
-// 
-//     std::uniform_int_distribution<double> dist(0, n_configs);
-// 
-//     // Pointer to hold the samples
-//     double* hold_sample = new double[rows];
-// 
-//     // Get the average and the variance for each sample
-//     double* hold_avg = new double[nboot * n_tau];
-//     double* hold_var = new double[nboot * n_tau];
-//     
-//     // Pointer of results
-//     double* best_avg = new double[n_tau];
-//     double* best_var = new double[n_tau];
-// 
-//     unsigned pich_nc, index; 
-//     double aux_mean, aux_var;
-// 
-//     for ( unsigned nb = 0; nb < nboot; nb++ ) {
-//         // Generate a bootstrap resample
-//         for ( unsigned nc = 0; nc < n_configs; nc++ ) {
-//             pick_nc = dist(this->random_eng);
-//             for ( unsigned nt = 0; nt < n_tau; nt++ ) {
-//                 index = ( pick_nc * n_tau + nt ) * cols + col;
-//                 hold_sample[nc * n_tau + nt] = 
-//                     this->raw.data[index];
-//             }
-//         }
-//         // Calculate the mean estimation for that resample
-//         for ( unsigned nt = 0; nt < n_tau; nt++ ) {
-//             aux_mean = 0.0;
-//             for ( unsigned nc = 0; nc < n_configs; nc++ ) {
-//                 index = ( nc * n_tau + nt );
-//                 aux_mean += hold_sample[index];
-//             }
-//             hold_avg[nb * n_tau + nt] = aux_mean / n_configs;
-//         }
-// 
-//         // Calculate the variance estimation for that resample
-//         for ( unsigned nt = 0; nt < n_tau; nt++ ) {
-//             aux_var = 0.0;
-//             for ( unsigned nc = 0; nc < n_configs; nc++ ) {
-//                 aux_var += \
-//                     ( hold_sample[nc * n_tau + nt] - \
-//                     hold_avg[nb * n_tau + nt] );
-//             }
-//             hold_var[nb * n_tau + nt] = aux_var / n_configs;
-//         }
-//     }
-// 
-//     // // Now calcualte the average value of the estimator and variance
-//     // for ( unsigned nt = 0; nt < n_tau; nt++ ) {
-//     //     aux_var = 0.0;
-//     //     aux_mean = 0.0;
-//     //     for ( unsigned nb = 0; nb < nboot; nb++ ) {
-//     //     }
-//     // }
-// }
+void Corr::boot_est( const unsigned nboot, const unsigned col ) {
+    /*
+       Method to generate a boostrap estimation of the correlation
+       function.
+    */
+    this->calc_boots = true;
+
+    unsigned rows = this->raw.row_size;
+    unsigned cols = this->raw.col_size;
+    unsigned n_tau = this->raw.time_extent;
+    unsigned n_configs = rows / n_tau;
+
+    std::uniform_int_distribution<int> dist(0, n_configs);
+
+    // Slice the matrix 
+    unsigned shape[2] = { n_configs, n_tau };
+    struct matrix get_col = this->reshape( this->raw, shape, 1 );
+
+    // Pointer and structure to hold the samples
+    double* hold_sample = new double[rows];
+    struct matrix resamp;
+
+    // Get the average and the variance for each sample
+    double* hold_avg = new double[nboot * n_tau];
+    double* hold_var = new double[nboot * n_tau];
+
+    // Auxiliary variables
+    unsigned index, pick_nc;
+    double* avg;
+    double* var;
+
+    for ( unsigned nb = 0; nb < nboot; nb++ ) {
+        // Generate a bootstrap resample
+        for ( unsigned nc = 0; nc < n_configs; nc++ ) {
+            pick_nc = dist(this->random_eng);
+            for ( unsigned nt = 0; nt < n_tau; nt++ ) {
+                index = pick_nc * n_tau + nt;
+                hold_sample[nc * n_tau + nt] = get_col.data[index];
+            }
+        }
+        // Calculate the average of that resample
+        resamp = { hold_sample, n_configs, n_tau, n_tau };
+
+        avg = this->avg( resamp );
+        var = this->var( resamp, avg );
+
+        // Fill hold_avg and hold_var with this estimations
+        for ( unsigned nt = 0; nt < n_tau; nt++ ) {
+            hold_avg[nb * n_tau + nt] = avg[nt];
+            hold_var[nb * n_tau + nt] = var[nt];
+        }
+    }
+    
+    struct matrix est_avg = { hold_avg, nboot, n_tau, n_tau };
+    struct matrix est_var = { hold_var, nboot, n_tau, n_tau };
+
+    // Calculate the average on all the resamples
+    double* best_avg = this->avg( est_avg );
+    double* best_var = this->avg( est_var );
+
+    // Fill a matrix with these values
+    double* best_corr =  new double[n_tau * 2];
+    
+    for ( unsigned nt = 0; nt < n_tau; nt++ ) {
+        best_corr[nt * 2 + 0] = best_avg[nt];
+        best_corr[nt * 2 + 1] = best_var[nt];
+    }
+
+    delete [] hold_sample;
+    delete [] hold_avg;
+    delete [] hold_var;
+
+    this->best_est = { best_corr, n_tau, 2, n_tau };
+}
 
 void Corr::cent_corr( const unsigned col ) {
     /* 
@@ -103,10 +109,15 @@ void Corr::cent_corr( const unsigned col ) {
     unsigned n_tau = this->raw.time_extent;
     unsigned n_configs = rows / n_tau;
 
-    struct matrix get_col = this->slice( this->raw, col );
+    // This is ok
+    unsigned shape[2] = { n_configs, n_tau };
+    struct matrix get_col = this->reshape( this->raw, shape );
+
     double* avg_corr = this->avg( get_col );
     double* var_corr = this->var( get_col, avg_corr );
+
     double* central = new double[n_tau * 2];
+
     // Fill a matrix with these values
     for ( unsigned nt = 0; nt < n_tau; nt++ ) {
         central[nt * 2 + 0] = avg_corr[nt];

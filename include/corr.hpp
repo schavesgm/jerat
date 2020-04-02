@@ -12,6 +12,7 @@ class Corr {
     public:
         // Data
         struct matrix raw;
+        struct matrix best_est;
         struct matrix cent;
         struct matrix stn;
         struct matrix cov;
@@ -47,7 +48,8 @@ class Corr {
         
         double* avg( struct matrix );
         double* var( struct matrix, double* );
-        struct matrix slice( struct matrix, const unsigned );
+        struct matrix reshape( 
+            struct matrix, const unsigned[2], const unsigned = 1 );
 
 
 
