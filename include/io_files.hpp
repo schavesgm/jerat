@@ -11,7 +11,7 @@
 // Load definitions
 #include "defs.hpp"
 
-struct corr load_data( 
+struct matrix load_data( 
     const char*, const unsigned, const unsigned, const unsigned, 
     std::string = "#", const bool = false, const unsigned = 0, 
     const double = 1.0 );

@@ -1,6 +1,6 @@
 #include "io_files.hpp"
 
-struct corr load_data( 
+struct matrix load_data( 
     const char file_name[255], const unsigned row_size, 
     const unsigned col_size, const unsigned time_extent, 
     std::string comm_char, const bool res_bool, 
@@ -46,6 +46,6 @@ struct corr load_data(
         }
     }
     in.close();
-    struct corr data = { store, row_size, col_size, time_extent };
+    struct matrix data = { store, row_size, col_size, time_extent };
     return data;
 }

@@ -4,7 +4,7 @@
 // File to store definitions
 
 // Matrix structure
-struct corr {
+struct matrix {
     double* data;
     unsigned row_size, col_size;
     unsigned time_extent;
