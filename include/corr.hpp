@@ -23,7 +23,13 @@ class Corr {
 
         // Calculate signal to noise
         void sig_to_noise();
-        
+
+        // Calculate t_max
+        int get_tmax( double, double );
+
+    private:
+        bool calc_central = false;     
+        bool calc_sig2noi = false;     
 
 };
 

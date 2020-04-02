@@ -25,6 +25,7 @@ void Corr::cent_corr( const unsigned col ) {
         col (unsigned):
             Column to calculate the central value.
     */
+    this->calc_central = true;
 
     unsigned rows = this->raw.row_size;
     unsigned cols = this->raw.col_size;
@@ -69,7 +70,9 @@ void Corr::sig_to_noise() {
     */
 
     // Make sure the central value is calculated
-    this->cent_corr(1);
+    if ( !this->calc_central ) {
+        this->cent_corr(1);
+    }
 
     unsigned n_tau = this->cent.time_extent;
     unsigned sep = this->cent.col_size;
@@ -82,4 +85,45 @@ void Corr::sig_to_noise() {
     }
 
     this->stn = { sig2noise, n_tau, 1, n_tau };
+}
+
+int Corr::get_tmax( double tol_noise, double tol_temp ) {
+    /* 
+       Method to calculate the t_max to fit the data for a given
+       correlation function. The algorithm to decide which t_max
+       to select is given by,
+       t_max = min( 
+                1 / stn(G(t+a) >= tol_noise, 
+                \bar{G}(t+a) < 0, t + a > tol_temp 
+            )
+    */ 
+    int tmax = raw.time_extent - 1;
+
+    // Check if needed data is calculated --> Get it if not
+    if ( !this->calc_central )
+        this->cent_corr( 1 );
+    if ( !this->calc_sig2noi )
+        this->sig_to_noise();
+
+    // Choose the time
+    bool first_cond, sec_cond, third_cond;
+    for ( unsigned nt = 0; nt < stn.time_extent - 1; nt++ ) {
+
+        // Check the first condition
+        ( 1 / this->stn.data[nt+1] ) > tol_noise \
+            ? first_cond = true : first_cond = false;
+
+        // Check second condition
+        this->cent.data[nt+1] < 0 \
+            ? sec_cond = true : sec_cond = false;
+
+        // Check third condition
+        nt + 1 > tol_temp ? third_cond = true : third_cond = false;
+
+        if ( third_cond || sec_cond || third_cond ) {
+            tmax = nt;
+            break;
+        }
+    }
+    return tmax;
 }
