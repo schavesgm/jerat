@@ -21,7 +21,8 @@ int main() {
     // for( unsigned i = 0; i < time_extent; i++ ) {
     //     std::cout << corr.stn.data[i] << std::endl;
     // }
-    int tmax = corr.get_tmax( 1.0, 0.75 * time_extent );
+    int tmax = corr.get_tmax( 0.5, 0.5 * time_extent );
+    std::cout << tmax << std::endl;
 
     return 0;
 }

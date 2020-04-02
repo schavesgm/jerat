@@ -120,7 +120,7 @@ int Corr::get_tmax( double tol_noise, double tol_temp ) {
         // Check third condition
         nt + 1 > tol_temp ? third_cond = true : third_cond = false;
 
-        if ( third_cond || sec_cond || third_cond ) {
+        if ( first_cond || sec_cond || third_cond ) {
             tmax = nt;
             break;
         }
