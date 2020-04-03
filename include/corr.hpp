@@ -55,9 +55,6 @@ class Corr {
 
         struct matrix reshape( 
             struct matrix, const unsigned[2], const unsigned = 1 );
-
-
-
 };
 
 #endif

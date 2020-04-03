@@ -12,6 +12,7 @@ Corr::Corr( const char* file_name, const unsigned row_size,
         col_size, time_extent );
 
     // Set the seed
+    this->seed = seed;
     this->random_eng.seed(seed);
 }
 
@@ -211,6 +212,6 @@ void Corr::cov_matrix( unsigned tmin, unsigned tmax,
     delete [] hold_sample;
     delete [] cov_sample;
 
-    this->covmat = { best_cov, n_tau, n_tau, n_tau };
+    this->covmat = { best_cov, window, window, n_tau };
 }
 

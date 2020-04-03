@@ -58,7 +58,8 @@ double* Corr::cov( struct matrix data ) {
     // Calculate the average of the sample
     double* avg = this->avg( data );
     double* cov = new double[cols * cols];
-
+    
+    // std::cout << "Covariance data" << std::endl;
     double aux_cov; 
     double value_first, value_sec;
     for ( unsigned t = 0; t < cols; t++ ) {
@@ -71,7 +72,10 @@ double* Corr::cov( struct matrix data ) {
             }
             cov[t * cols + tp] = aux_cov / rows;
         }
+        // std::cout << std::endl;
     }
+    // std::cout << cov[0] << " ";
+    // std::cout << std::endl;
     return cov;
 }
 
