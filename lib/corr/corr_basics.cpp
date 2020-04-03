@@ -7,6 +7,7 @@ Correlator::Correlator( struct Input* inputs, unsigned num_inputs ) {
     
     // Create a RAW pointer with the correct dimensions
     this->RAW_DATA = new Matrix[num_inputs];
+    this->num_inputs = num_inputs;
 
     // // Load the data in file inside a pointer 
     for ( unsigned ni = 0; ni < 2; ni++ ) {
@@ -17,6 +18,52 @@ Correlator::Correlator( struct Input* inputs, unsigned num_inputs ) {
     // Set the seed
     // this->seed = seed;
     // this->random_eng.seed(seed);
+}
+
+void Correlator::central_value( const unsigned col ) {
+    /* 
+       Method to calculate the central value of the correlation
+       function data coming from simulations.  The central value is
+       defined as,
+
+            \bar{C}(\tau) = 1/N_C \sum_i^{N_C} C_i(\tau)
+        its error is defined as, 
+            Var(\bar{C}(\tau)) = 1/N_C \sum_i^{N_C} (
+                C_i(\tau) - \bar{C}(\tau )^2
+
+    */
+    // Let the code know you have the central value calculated
+    this->bool_central = true;
+    
+    // Allocate the memory
+    this->central = new Matrix[this->num_inputs];
+
+    for ( unsigned ni = 0; ni < num_inputs; ni++ ) {
+
+        // Calculate the central value for each input
+        unsigned rows = this->RAW_DATA[ni].row_size;
+        unsigned cols = this->RAW_DATA[ni].col_size;
+        unsigned n_tau = this->RAW_DATA[ni].time_extent;
+        unsigned n_configs = rows / n_tau;
+
+        unsigned shape[2] = { n_configs, n_tau };
+        struct Matrix slice = 
+            this->reshape( this->RAW_DATA[ni], shape );
+
+        double* avg_corr = this->avg( slice );
+        double* var_corr = this->var( slice, avg_corr );
+
+        double* cent_ni = new double[n_tau * 2];
+
+        // Fill a matrix with these values
+        for ( unsigned nt = 0; nt < n_tau; nt++ ) {
+            cent_ni[nt * 2 + 0] = avg_corr[nt];
+            cent_ni[nt * 2 + 1] = var_corr[nt];
+        }
+        this->central[ni] = { cent_ni, n_tau, 2, n_tau };
+        delete [] avg_corr;
+        delete [] var_corr;
+    }
 }
 
 // void Corr::boot_est( const unsigned nboot, const unsigned col ) {
@@ -94,41 +141,6 @@ Correlator::Correlator( struct Input* inputs, unsigned num_inputs ) {
 //     this->best_est = { best_corr, n_tau, 2, n_tau };
 // }
 // 
-// void Corr::cent_corr( const unsigned col ) {
-//     /* 
-//        Method to calculate the central value of the correlation
-//        function data coming from simulations.  The central value is
-//        defined as,
-// 
-//             \bar{C}(\tau) = 1/N_C \sum_i^{N_C} C_i(\tau)
-//         its error is defined as, 
-//             Var(\bar{C}(\tau)) = 1/N_C \sum_i^{N_C} (
-//                 C_i(\tau) - \bar{C}(\tau )^2
-// 
-//     */
-//     this->calc_central = true;
-// 
-//     unsigned rows = this->raw.row_size;
-//     unsigned cols = this->raw.col_size;
-//     unsigned n_tau = this->raw.time_extent;
-//     unsigned n_configs = rows / n_tau;
-// 
-//     // This is ok
-//     unsigned shape[2] = { n_configs, n_tau };
-//     struct matrix get_col = this->reshape( this->raw, shape );
-// 
-//     double* avg_corr = this->avg( get_col );
-//     double* var_corr = this->var( get_col, avg_corr );
-// 
-//     double* central = new double[n_tau * 2];
-// 
-//     // Fill a matrix with these values
-//     for ( unsigned nt = 0; nt < n_tau; nt++ ) {
-//         central[nt * 2 + 0] = avg_corr[nt];
-//         central[nt * 2 + 1] = var_corr[nt];
-//     }
-//     this->cent = { central, n_tau, 2, n_tau };
-// }
 // 
 // void Corr::sig_to_noise() {
 //     /*

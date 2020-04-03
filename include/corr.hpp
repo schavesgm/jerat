@@ -11,9 +11,23 @@ class Correlator {
 
     public:
         // Data
-        struct Matrix* RAW_DATA;
+        Matrix* RAW_DATA;
+        Matrix* central;
+        
+        unsigned num_inputs;
 
-        Correlator( struct Input*, unsigned );
+        Correlator( Input*, unsigned );
+        void central_value( const unsigned = 1 );
+
+    private:
+        bool bool_central = false;
+
+        double* avg( Matrix );
+        double* var( Matrix, double* );
+
+        struct Matrix reshape( 
+            Matrix, const unsigned*, const unsigned = 1
+        );
 
         // struct matrix best_est;
         // struct matrix cent;
@@ -33,7 +47,6 @@ class Correlator {
         // // Generate a bootstrap estimation
         // void boot_est( const unsigned = 200, const unsigned = 1 );
         // // Generate the central value
-        // void cent_corr( const unsigned = 1 );
         // // Calculate signal to noise
         // void sig_to_noise();
         // // Calculate t_max

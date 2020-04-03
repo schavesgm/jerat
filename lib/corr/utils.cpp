@@ -3,11 +3,10 @@
    This file contains all the utils
 */
 
-double* Corr::avg( struct matrix data ) {
+double* Correlator::avg( Matrix data ) {
     /*
        Calculate the average of data in the column axis.
     */
-
     unsigned rows = data.row_size;
     unsigned cols = data.col_size;
 
@@ -27,7 +26,7 @@ double* Corr::avg( struct matrix data ) {
     return avg_data;
 }
 
-double* Corr::var( struct matrix data, double* average ) {
+double* Correlator::var( Matrix data, double* average ) {
     /* 
        Method to calculate the variance of some data given the
        average.
@@ -50,38 +49,37 @@ double* Corr::var( struct matrix data, double* average ) {
     return var_data;
 }
 
-double* Corr::cov( struct matrix data ) {
+// double* Corr::cov( struct matrix data ) {
+// 
+//     unsigned rows = data.row_size;
+//     unsigned cols = data.col_size;
+// 
+//     // Calculate the average of the sample
+//     double* avg = this->avg( data );
+//     double* cov = new double[cols * cols];
+//     
+//     // std::cout << "Covariance data" << std::endl;
+//     double aux_cov; 
+//     double value_first, value_sec;
+//     for ( unsigned t = 0; t < cols; t++ ) {
+//         for ( unsigned tp = 0; tp < cols; tp++ ) {
+//             aux_cov = 0.0;
+//             for ( unsigned nr = 0; nr < rows; nr++ ) {
+//                 value_first = ( data.data[nr * cols + t] - avg[t] );
+//                 value_sec = ( data.data[nr * cols + tp] - avg[t] );
+//                 aux_cov += value_first * value_sec;
+//             }
+//             cov[t * cols + tp] = aux_cov / rows;
+//         }
+//         // std::cout << std::endl;
+//     }
+//     // std::cout << cov[0] << " ";
+//     // std::cout << std::endl;
+//     return cov;
+// }
 
-    unsigned rows = data.row_size;
-    unsigned cols = data.col_size;
-
-    // Calculate the average of the sample
-    double* avg = this->avg( data );
-    double* cov = new double[cols * cols];
-    
-    // std::cout << "Covariance data" << std::endl;
-    double aux_cov; 
-    double value_first, value_sec;
-    for ( unsigned t = 0; t < cols; t++ ) {
-        for ( unsigned tp = 0; tp < cols; tp++ ) {
-            aux_cov = 0.0;
-            for ( unsigned nr = 0; nr < rows; nr++ ) {
-                value_first = ( data.data[nr * cols + t] - avg[t] );
-                value_sec = ( data.data[nr * cols + tp] - avg[t] );
-                aux_cov += value_first * value_sec;
-            }
-            cov[t * cols + tp] = aux_cov / rows;
-        }
-        // std::cout << std::endl;
-    }
-    // std::cout << cov[0] << " ";
-    // std::cout << std::endl;
-    return cov;
-}
-
-struct matrix Corr::reshape( 
-    struct matrix data, const unsigned shape[2], 
-    const unsigned col ) {
+struct Matrix Correlator::reshape( 
+    Matrix data, const unsigned shape[2], const unsigned col) {
     /*
        Method to slice a matrix into a vector in a given column. 
        The initial matrix has dimensions [rows,cols], the resuling
@@ -97,7 +95,8 @@ struct matrix Corr::reshape(
     for ( unsigned nr = 0; nr < rows; nr++ ) {
         hold[nr] = data.data[nr * cols + col];
     }
-    struct matrix ret = \
+
+    struct Matrix ret = \
         { hold, fin_rows, fin_cols, data.time_extent };
     return ret;
 }
