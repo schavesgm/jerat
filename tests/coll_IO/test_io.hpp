@@ -6,7 +6,7 @@
 
 TEST_CASE( "Testing IO", "[IO]" ) {
 
-    char file_name[255] = "./coll_IO/file.dat";
+    std::string file_name = "./coll_IO/file.dat";
     unsigned row_size = 3;
     unsigned col_size = 3;
     unsigned time_extent = 48;
