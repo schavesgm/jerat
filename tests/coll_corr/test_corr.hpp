@@ -1,6 +1,8 @@
 #ifndef TEST_CORR_H
 #define TEST_CORR_H
 
+#include <iostream>
+
 #include "corr.hpp"
 #include "catch.hpp"
 
@@ -74,6 +76,64 @@ TEST_CASE( "Correlation function class", "[Corr]" ) {
                 Approx( 0.74149 ).margin( 0.0001 ) );
         REQUIRE( corr.cent.data[time_extent * 2 - 1] == \
                 Approx( 0.00080 ).margin( 0.001 ) );
+    }
+    SECTION( "Test covariance matrix" ) {
+
+        // Generate a Corr object
+        Corr corr( file_name, row_size, col_size, 
+            time_extent, 123 );
+        corr.cov_matrix( 1, 2, 10 );
+
+        // Check the dimensions
+        REQUIRE( corr.covmat.row_size == 2 );
+        REQUIRE( corr.covmat.col_size == 2 );
+        REQUIRE( corr.covmat.time_extent == time_extent );
+
+        // Check the values for different number of bootstrap 
+
+        // For 10 bootstrap iterations
+        REQUIRE( corr.covmat.data[0] == 
+                Approx( 0.00069538 ).margin( 0.00001 ) );
+        REQUIRE( corr.covmat.data[3] == 
+                Approx( 0.000192328 ).margin( 0.00001 ) );
+        REQUIRE( corr.covmat.data[1] == 
+                Approx( 0.000116838 ).margin( 0.00001 ) );
+        REQUIRE( corr.covmat.data[2] == 
+                Approx( 0.000116838 ).margin( 0.00001 ) );
+
+
+        // For 100 bootstrap iterations
+        corr.cov_matrix( 1, 2, 100 );
+        REQUIRE( corr.covmat.data[0] == 
+                Approx( 0.000816549 ).margin( 0.00001 ) );
+        REQUIRE( corr.covmat.data[3] == 
+                Approx( 0.000238198 ).margin( 0.00001 ) );
+        REQUIRE( corr.covmat.data[1] == 
+                Approx( 5.20208e-05 ).margin( 0.00001 ) );
+        REQUIRE( corr.covmat.data[2] == 
+                Approx( 5.20208e-05 ).margin( 0.00001 ) );
+
+        // // For 200 bootstrap iterations
+        corr.cov_matrix( 1, 2, 200 );
+        REQUIRE( corr.covmat.data[0] == 
+                Approx( 0.00075124 ).margin( 0.00001 ) );
+        REQUIRE( corr.covmat.data[3] == 
+                Approx( 0.000211729 ).margin( 0.00001 ) );
+        REQUIRE( corr.covmat.data[1] == 
+                Approx( 8.97346e-05 ).margin( 0.00001 ) );
+        REQUIRE( corr.covmat.data[2] == 
+                Approx( 8.97346e-05 ).margin( 0.00001 ) );
+
+        // For 1000 bootstrap iterations
+        corr.cov_matrix( 1, 2, 1000 );
+        REQUIRE( corr.covmat.data[0] == 
+                Approx( 0.000770036 ).margin( 0.00001 ) );
+        REQUIRE( corr.covmat.data[3] == 
+                Approx( 0.000218769 ).margin( 0.00001 ) );
+        REQUIRE( corr.covmat.data[1] == 
+                Approx( 7.87164e-05 ).margin( 0.00001 ) );
+        REQUIRE( corr.covmat.data[2] == 
+                Approx( 7.87164e-05 ).margin( 0.00001 ) );
     }
     SECTION( "Test signal to noise" ) {
 
