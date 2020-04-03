@@ -27,8 +27,7 @@ int main() {
             time_extent };
     }
     Correlator corr( ins, num_files );
-    for ( unsigned i = 0; i < 6; i++ )
-        std::cout << corr.RAW_DATA[0].data[i] << " ";
+    corr.central_value();
 
     // Define the input variables
     // Input ins = { FILES[0].c_str(), 120, 1, 128 };
