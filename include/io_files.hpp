@@ -11,9 +11,6 @@
 // Load definitions
 #include "defs.hpp"
 
-struct matrix load_data( 
-    const char*, const unsigned, const unsigned, const unsigned, 
-    std::string = "#", const bool = false, const unsigned = 0, 
-    const double = 1.0 );
+struct Matrix load_data( struct Input, std::string = "#" );
 
 #endif

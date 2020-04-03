@@ -1,7 +1,8 @@
 #include <iostream>
 
 // Load headers 
-#include "corr.hpp"
+// #include "corr.hpp"
+#include "io_files.hpp"
 
 int main() {
 
@@ -10,26 +11,32 @@ int main() {
     unsigned col_size = 3;
     unsigned time_extent = 48;
 
-    Corr best( file_name, row_size, col_size, time_extent );
-    best.boot_est();
+    Input input = { file_name, row_size, col_size, time_extent };
+    std::cout << input.file_name << " " << input.row_size << " " <<
+        input.col_size << " " << input.time_extent << std::endl;
+    std::cout << input.rescale << " " << input.col_rescale << " " <<
+        input.res_factor << std::endl;
 
-    Corr corr( file_name, row_size, col_size, time_extent, 123 );
-    corr.cov_matrix( 1, 2, 10 );
-    std::cout << corr.covmat.data[0] << " " <<
-        corr.covmat.data[1] << " " << corr.covmat.data[2] << 
-        " " << corr.covmat.data[3] << std::endl;
-    corr.cov_matrix( 1, 2, 100 );
-    std::cout << corr.covmat.data[0] << " " <<
-        corr.covmat.data[1] << " " << corr.covmat.data[2] << 
-        " " << corr.covmat.data[3] << std::endl;
-    corr.cov_matrix( 1, 2, 200 );
-    std::cout << corr.covmat.data[0] << " " <<
-        corr.covmat.data[1] << " " << corr.covmat.data[2] << 
-        " " << corr.covmat.data[3] << std::endl;
-    corr.cov_matrix( 1, 2, 1000 );
-    std::cout << corr.covmat.data[0] << " " <<
-        corr.covmat.data[1] << " " << corr.covmat.data[2] << 
-        " " << corr.covmat.data[3] << std::endl;
+    // Corr best( file_name, row_size, col_size, time_extent );
+    // best.boot_est();
+
+    // Corr corr( file_name, row_size, col_size, time_extent, 123 );
+    // corr.cov_matrix( 1, 2, 10 );
+    // std::cout << corr.covmat.data[0] << " " <<
+    //     corr.covmat.data[1] << " " << corr.covmat.data[2] << 
+    //     " " << corr.covmat.data[3] << std::endl;
+    // corr.cov_matrix( 1, 2, 100 );
+    // std::cout << corr.covmat.data[0] << " " <<
+    //     corr.covmat.data[1] << " " << corr.covmat.data[2] << 
+    //     " " << corr.covmat.data[3] << std::endl;
+    // corr.cov_matrix( 1, 2, 200 );
+    // std::cout << corr.covmat.data[0] << " " <<
+    //     corr.covmat.data[1] << " " << corr.covmat.data[2] << 
+    //     " " << corr.covmat.data[3] << std::endl;
+    // corr.cov_matrix( 1, 2, 1000 );
+    // std::cout << corr.covmat.data[0] << " " <<
+    //     corr.covmat.data[1] << " " << corr.covmat.data[2] << 
+    //     " " << corr.covmat.data[3] << std::endl;
     // corr.cov_matrix( 0, 2, 10000 );
     // std::cout << corr.covmat.data[0] << std::endl;
     // corr.cov_matrix( 0, 2, 15000 );
