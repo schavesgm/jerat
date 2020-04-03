@@ -7,7 +7,7 @@ struct Matrix load_data( struct Input input, std::string comm_char ) {
     */
 
     // Retrieve the data from the Input structure
-    char* file_name = input.file_name;
+    std::string file_name = input.file_name;
     unsigned row_size = input.row_size;
     unsigned col_size = input.col_size;
     unsigned time_extent = input.time_extent;

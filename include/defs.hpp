@@ -2,10 +2,12 @@
 #define DEFS_HPP
 
 // File to store definitions
+#include <string>
+#include <vector>
 
 // Input structure
 struct Input {
-    char* file_name;
+    std::string file_name;
     unsigned row_size, col_size, time_extent;
     bool rescale = false;
     unsigned col_rescale = 1;

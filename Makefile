@@ -7,24 +7,18 @@ ROOT := $(shell pwd)
 LIB := $(ROOT)/lib
 INC := $(ROOT)/include
 
-$(LINK_TARGET): objs main.o corr_basics.o corr_tree.o io_files.o
-	$(CXX) $(CXFLAGS) -o $@ $</main.o \
-	    $</utils.o $</corr_basics.o $</corr_tree.o $</io_files.o
+OBJS = main.o corrs.o io_files.o
+$(LINK_TARGET): objs main.o corrs.o
+	$(CXX) $(CXFLAGS) -o $@ $(foreach obj,$(OBJS), $</$(obj) )
 
-main.o: objs corr_tree.o
+main.o: objs
 	$(CXX) $(CXFLAGS) -o $</$@ -c $*.cpp -I $(INC)
 
 # # Compile all the correlation function codes
-corr_tree.o: objs corr_basics.o
+CORRS = corr_basics.cpp
+corrs.o: objs io_files.o
 	$(CXX) $(CXFLAGS) -o $</$@ \
-	    -c $(LIB)/corr/$*.cpp -I $(INC)
-
-corr_basics.o: objs utils.o
-	$(CXX) $(CXFLAGS) -o $</$@ \
-	    -c $(LIB)/corr/$*.cpp -I $(INC)
-
-utils.o: objs io_files.o
-	$(CXX) $(CXFLAGS) -o $</$@ -c $(LIB)/corr/$*.cpp -I $(INC)
+	    -c $(foreach corr,$(CORRS), $(LIB)/corr/$(corr) ) -I $(INC)
 
 # Create the io_file object
 io_files.o: objs

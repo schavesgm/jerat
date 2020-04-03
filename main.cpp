@@ -1,21 +1,62 @@
 #include <iostream>
 
 // Load headers 
-// #include "corr.hpp"
-#include "io_files.hpp"
+#include "corr.hpp"
+
+void trial( struct Input* ins, int num ) {
+    for ( int ni = 0; ni < num; ni++ ) {
+        std::cout << ins[ni].file_name << std::endl;
+    }
+}
 
 int main() {
 
-    char file_name[255] = "Gen2l_48x32.meson.g5.cc";
-    unsigned row_size = 106752; 
+    unsigned num_files = 2;
+    std::vector<std::string> FILES;
+    FILES.push_back( "Gen2l_48x32.meson.g5.cc" );
+    FILES.push_back( "Gen2l_48x32.meson.vec.cc" );
+
+    unsigned ROWS[num_files] = { 106752, 3 * 106752 };
     unsigned col_size = 3;
     unsigned time_extent = 48;
 
-    Input input = { file_name, row_size, col_size, time_extent };
-    std::cout << input.file_name << " " << input.row_size << " " <<
-        input.col_size << " " << input.time_extent << std::endl;
-    std::cout << input.rescale << " " << input.col_rescale << " " <<
-        input.res_factor << std::endl;
+    Input ins[num_files];
+    for ( unsigned nf = 0; nf <  num_files; nf++ ) {
+        std::cout << FILES[nf].c_str() << std::endl;
+        ins[nf] = { FILES[nf].c_str(), ROWS[nf], col_size, 
+            time_extent };
+    }
+    Correlator corr( ins, num_files );
+    for ( unsigned i = 0; i < 6; i++ )
+        std::cout << corr.RAW_DATA[0].data[i] << " ";
+
+    // Define the input variables
+    // Input ins = { FILES[0].c_str(), 120, 1, 128 };
+    // const char file_g5[255] = "Gen2l_48x32.meson.g5.cc";
+    // const char file_vec[255] = "Gen2l_48x32.meson.g5.cc";
+    // std::cout << file_g5 << std::endl;
+    // char** FILES = new char*[2];
+    // for ( unsigned nf = 0; nf < 2; nf++ ) {
+    //     FILES[nf] = new char[255];
+    // }
+    // FILES[0] = file_g5;
+    // FILES[1] = file_vec;
+    // std::cout << FILES[0] << " " << FILES[1] << std::endl;
+
+    // unsigned row_size = 106752; 
+    // unsigned col_size = 3;
+    // unsigned time_extent = 48;
+
+    // Input* input = new Input[2];
+    // input[0] = { file_name, row_size, col_size, time_extent };
+    // input[1] = { file_name, row_size, col_size, time_extent };
+
+    // Correlator corrs( input, 2 );
+    // std::cout << corrs.RAW_DATA[0].data[0] << std::endl;
+
+    // for ( unsigned i = 0; i < 10; i++ ) {
+    //     std::cout << CORRS.RAW_DATA[0].data[i] << " ";
+    // }
 
     // Corr best( file_name, row_size, col_size, time_extent );
     // best.boot_est();

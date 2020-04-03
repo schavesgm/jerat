@@ -7,54 +7,57 @@
 #include "defs.hpp"
 #include "io_files.hpp"
 
-class Corr {
+class Correlator {
 
     public:
         // Data
-        struct matrix raw;
-        struct matrix best_est;
-        struct matrix cent;
-        struct matrix stn;
-        struct matrix covmat;
+        struct Matrix* RAW_DATA;
 
-        unsigned tmax, tmin;
+        Correlator( struct Input*, unsigned );
 
-        // Utils
-        unsigned seed;
-        std::mt19937 random_eng;
+        // struct matrix best_est;
+        // struct matrix cent;
+        // struct matrix stn;
+        // struct matrix covmat;
 
-        // Methods
-        Corr( const char*, const unsigned, const unsigned, 
-            const unsigned, unsigned = 12341234 );
-        
-        // Generate a bootstrap estimation
-        void boot_est( const unsigned = 200, const unsigned = 1 );
-        // Generate the central value
-        void cent_corr( const unsigned = 1 );
-        // Calculate signal to noise
-        void sig_to_noise();
-        // Calculate t_max
-        void get_tmax( double, double );
-        // Sample a t_min
-        void get_tmin( unsigned ); 
-        // Calculate the covariance matrix using bootstrap
-        void cov_matrix( unsigned, unsigned, unsigned = 200 );
+        // unsigned tmax, tmin;
 
-    private:
-        bool calc_boots = false;
-        bool calc_central = false;     
-        bool calc_sig2noi = false;     
-        bool calc_tmax = false;
-        
-        // Mean value of data
-        double* avg( struct matrix );
-        // Variance of data
-        double* var( struct matrix, double* );
-        // Covariance of data
-        double* cov( struct matrix );
+        // // Utils
+        // unsigned seed;
+        // std::mt19937 random_eng;
 
-        struct matrix reshape( 
-            struct matrix, const unsigned[2], const unsigned = 1 );
+        // // Methods
+        // Corr( const char*, const unsigned, const unsigned, 
+        //     const unsigned, unsigned = 12341234 );
+        // 
+        // // Generate a bootstrap estimation
+        // void boot_est( const unsigned = 200, const unsigned = 1 );
+        // // Generate the central value
+        // void cent_corr( const unsigned = 1 );
+        // // Calculate signal to noise
+        // void sig_to_noise();
+        // // Calculate t_max
+        // void get_tmax( double, double );
+        // // Sample a t_min
+        // void get_tmin( unsigned ); 
+        // // Calculate the covariance matrix using bootstrap
+        // void cov_matrix( unsigned, unsigned, unsigned = 200 );
+
+    // private:
+        // bool calc_boots = false;
+        // bool calc_central = false;     
+        // bool calc_sig2noi = false;     
+        // bool calc_tmax = false;
+        // 
+        // // Mean value of data
+        // double* avg( struct matrix );
+        // // Variance of data
+        // double* var( struct matrix, double* );
+        // // Covariance of data
+        // double* cov( struct matrix );
+
+        // struct matrix reshape( 
+        //     struct matrix, const unsigned[2], const unsigned = 1 );
 };
 
 #endif
