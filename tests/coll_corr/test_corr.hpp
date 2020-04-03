@@ -50,6 +50,51 @@ TEST_CASE( "Correlation function class", "[Corr]" ) {
         REQUIRE( corr.RAW_DATA[1].data[4] == 
                 Approx( -0.6480 ).margin( 0.0001 ) );
     }
+    SECTION( "Test central value -> Average and Variance" ) {
+
+        // Create an object
+        Correlator corr( ins, num_files );
+        corr.central_value();
+
+        // Check the dimensions of the central value
+        REQUIRE( corr.central[0].row_size == time_extent );
+        REQUIRE( corr.central[1].row_size == time_extent );
+        REQUIRE( corr.central[0].col_size == 2 );
+        REQUIRE( corr.central[1].col_size == 2 );
+        REQUIRE( corr.central[0].time_extent == time_extent );
+        REQUIRE( corr.central[1].time_extent == time_extent );
+
+        // Check the values obtained
+        // Check the first values
+        REQUIRE( corr.central[0].data[0] == 
+                Approx( 3.86904 ).margin( 0.00001 ) );
+        REQUIRE( corr.central[0].data[1] == 
+                Approx( 0.00528 ).margin( 0.00001 ) );
+        REQUIRE( corr.central[1].data[0] == 
+                Approx( -3.60454 ).margin( 0.00001 ) );
+        REQUIRE( corr.central[1].data[1] == 
+                Approx( 0.002914 ).margin( 0.00001 ) );
+
+        // Check the second values
+        REQUIRE( corr.central[0].data[2] == 
+                Approx( 0.741684 ).margin( 0.00001 ) );
+        REQUIRE( corr.central[0].data[3] == 
+                Approx( 0.00053 ).margin( 0.00001 ) );
+        REQUIRE( corr.central[1].data[2] == 
+                Approx( -0.627362 ).margin( 0.00001 ) );
+        REQUIRE( corr.central[1].data[3] == 
+                Approx( 0.000194 ).margin( 0.00001 ) );
+
+        // Check the last values
+        REQUIRE( corr.central[0].data[time_extent * 2 - 2] == \
+                Approx( 0.741828 ).margin( 0.00001 ) );
+        REQUIRE( corr.central[0].data[time_extent * 2 - 1] == \
+                Approx( 0.000554 ).margin( 0.00001 ) );
+        REQUIRE( corr.central[1].data[time_extent * 2 - 2] == \
+                Approx( -0.62737 ).margin( 0.00001 ) );
+        REQUIRE( corr.central[1].data[time_extent * 2 - 1] == \
+                Approx( 0.000202 ).margin( 0.00001 ) );
+    }
     // for ( unsigned nf = 0; nf < num_files; nf++ ) {
     //     const char* name = FILES[nf].c_str();
     //     ins[nf] = { name, ROWS[nf], col_size, time_extent };
