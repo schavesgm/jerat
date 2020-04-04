@@ -13,14 +13,24 @@ class Correlator {
         // Data
         Matrix* RAW_DATA;
         Matrix* central;
+        Matrix* boots_central;
+        Matrix* sig2noise;
         
+        // Utils
         unsigned num_inputs;
+        unsigned seed;
+        std::mt19937 random_eng;
 
-        Correlator( Input*, unsigned );
+        Correlator( Input*, unsigned, unsigned = 123 );
         void central_value( const unsigned = 1 );
+        void bootstrap_central( const unsigned = 200, 
+            const unsigned = 1 );
+        void sig_to_noise();
 
     private:
+
         bool bool_central = false;
+        bool bool_bootstrap = false;
 
         double* avg( Matrix );
         double* var( Matrix, double* );
@@ -36,16 +46,12 @@ class Correlator {
 
         // unsigned tmax, tmin;
 
-        // // Utils
-        // unsigned seed;
-        // std::mt19937 random_eng;
 
         // // Methods
         // Corr( const char*, const unsigned, const unsigned, 
         //     const unsigned, unsigned = 12341234 );
         // 
         // // Generate a bootstrap estimation
-        // void boot_est( const unsigned = 200, const unsigned = 1 );
         // // Generate the central value
         // // Calculate signal to noise
         // void sig_to_noise();

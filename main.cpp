@@ -22,12 +22,22 @@ int main() {
 
     Input ins[num_files];
     for ( unsigned nf = 0; nf <  num_files; nf++ ) {
-        std::cout << FILES[nf].c_str() << std::endl;
         ins[nf] = { FILES[nf].c_str(), ROWS[nf], col_size, 
             time_extent };
     }
     Correlator corr( ins, num_files );
-    corr.central_value();
+    corr.sig_to_noise();
+    std::cout << corr.sig2noise[1].data[0] << " " <<
+        corr.sig2noise[1].data[1] << " " << 
+        corr.sig2noise[1].data[time_extent - 1] << std::endl;
+    // std::cout << corr.boots_central[1].data[0] << " " <<
+    //     corr.boots_central[1].data[1] << std::endl;
+    // std::cout << corr.boots_central[1].data[2] << " " <<
+    //     corr.boots_central[1].data[3] << std::endl;
+    // std::cout << corr.boots_central[1].data[time_extent * 2 - 2] << 
+    //     " " << corr.boots_central[1].data[time_extent * 2 - 1] 
+    //     << std::endl;
+
 
     // Define the input variables
     // Input ins = { FILES[0].c_str(), 120, 1, 128 };

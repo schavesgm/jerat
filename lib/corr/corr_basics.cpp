@@ -3,7 +3,8 @@
    This file contains the basic definitions of the Corr class.
 */
 
-Correlator::Correlator( struct Input* inputs, unsigned num_inputs ) {
+Correlator::Correlator( struct Input* inputs, 
+        unsigned num_inputs, unsigned seed ) {
     
     // Create a RAW pointer with the correct dimensions
     this->RAW_DATA = new Matrix[num_inputs];
@@ -14,10 +15,9 @@ Correlator::Correlator( struct Input* inputs, unsigned num_inputs ) {
         this->RAW_DATA[ni] = load_data( inputs[ni] );
     }
 
-    // Load the data from file
     // Set the seed
-    // this->seed = seed;
-    // this->random_eng.seed(seed);
+    this->seed = seed;
+    this->random_eng.seed(seed);
 }
 
 void Correlator::central_value( const unsigned col ) {
@@ -48,7 +48,7 @@ void Correlator::central_value( const unsigned col ) {
 
         unsigned shape[2] = { n_configs, n_tau };
         struct Matrix slice = 
-            this->reshape( this->RAW_DATA[ni], shape );
+            this->reshape( this->RAW_DATA[ni], shape, 1 );
 
         double* avg_corr = this->avg( slice );
         double* var_corr = this->var( slice, avg_corr );
@@ -66,106 +66,129 @@ void Correlator::central_value( const unsigned col ) {
     }
 }
 
-// void Corr::boot_est( const unsigned nboot, const unsigned col ) {
-//     /*
-//        Method to generate a boostrap estimation of the correlation
-//        function.
-//     */
-//     this->calc_boots = true;
-// 
-//     unsigned rows = this->raw.row_size;
-//     unsigned cols = this->raw.col_size;
-//     unsigned n_tau = this->raw.time_extent;
-//     unsigned n_configs = rows / n_tau;
-// 
-//     std::uniform_int_distribution<int> dist(0, n_configs);
-// 
-//     // Slice the matrix 
-//     unsigned shape[2] = { n_configs, n_tau };
-//     struct matrix get_col = this->reshape( this->raw, shape, 1 );
-// 
-//     // Pointer and structure to hold the samples
-//     double* hold_sample = new double[rows];
-//     struct matrix resamp;
-// 
-//     // Get the average and the variance for each sample
-//     double* hold_avg = new double[nboot * n_tau];
-//     double* hold_var = new double[nboot * n_tau];
-// 
-//     // Auxiliary variables
-//     unsigned index, pick_nc;
-//     double* avg;
-//     double* var;
-// 
-//     for ( unsigned nb = 0; nb < nboot; nb++ ) {
-//         // Generate a bootstrap resample
-//         for ( unsigned nc = 0; nc < n_configs; nc++ ) {
-//             pick_nc = dist(this->random_eng);
-//             for ( unsigned nt = 0; nt < n_tau; nt++ ) {
-//                 index = pick_nc * n_tau + nt;
-//                 hold_sample[nc * n_tau + nt] = get_col.data[index];
-//             }
-//         }
-//         // Calculate the average of that resample
-//         resamp = { hold_sample, n_configs, n_tau, n_tau };
-// 
-//         avg = this->avg( resamp );
-//         var = this->var( resamp, avg );
-// 
-//         // Fill hold_avg and hold_var with this estimations
-//         for ( unsigned nt = 0; nt < n_tau; nt++ ) {
-//             hold_avg[nb * n_tau + nt] = avg[nt];
-//             hold_var[nb * n_tau + nt] = var[nt];
-//         }
-//     }
-//     
-//     struct matrix est_avg = { hold_avg, nboot, n_tau, n_tau };
-//     struct matrix est_var = { hold_var, nboot, n_tau, n_tau };
-// 
-//     // Calculate the average on all the resamples
-//     double* best_avg = this->avg( est_avg );
-//     double* best_var = this->avg( est_var );
-// 
-//     // Fill a matrix with these values
-//     double* best_corr =  new double[n_tau * 2];
-//     
-//     for ( unsigned nt = 0; nt < n_tau; nt++ ) {
-//         best_corr[nt * 2 + 0] = best_avg[nt];
-//         best_corr[nt * 2 + 1] = best_var[nt];
-//     }
-// 
-//     delete [] hold_sample;
-//     delete [] hold_avg;
-//     delete [] hold_var;
-// 
-//     this->best_est = { best_corr, n_tau, 2, n_tau };
-// }
-// 
-// 
-// void Corr::sig_to_noise() {
-//     /*
-//        Method to calculate signal to noise in a correlation function.
-//        The method implements,
-//             StN(C(\tau)) = \bar{C}(\tau) / sqrt(Var(C(\tau))
-//     */
-// 
-//     // Make sure the central value is calculated
-//     if ( !this->calc_central ) {
-//         this->cent_corr(1);
-//     }
-// 
-//     unsigned n_tau = this->cent.time_extent;
-//     unsigned sep = this->cent.col_size;
-//     double* sig2noise = new double[n_tau];
-// 
-//     for( unsigned nt = 0; nt < n_tau; nt++ ) { 
-//         sig2noise[nt] = \
-//             this->cent.data[nt * sep + 0] / \
-//             std::sqrt( this->cent.data[nt * sep + 1] );
-//     }
-// 
-//     this->stn = { sig2noise, n_tau, 1, n_tau };
-// }
+void Correlator::bootstrap_central( const unsigned nboot, 
+        const unsigned col ) {
+    /*
+       Method to generate a boostrap estimation of the correlation
+       function.
+    */
+    // Let the code know you have calculated bootstrap
+    this->bool_bootstrap = true;
+
+    // Allocate the memory
+    this->boots_central = new Matrix[this->num_inputs];
+    unsigned index, pick_nc;
+
+    for ( unsigned ni = 0; ni < this->num_inputs; ni++ ) {
+
+        // Get the dimensions of the file
+        unsigned rows = this->RAW_DATA[ni].row_size;
+        unsigned cols = this->RAW_DATA[ni].col_size;
+        unsigned n_tau = this->RAW_DATA[ni].time_extent;
+        unsigned n_configs = rows / n_tau;
+
+        // Generate the sampler
+        std::uniform_int_distribution<int> sampler(0, n_configs);
+
+        // Reshape the matrix
+        unsigned shape[2] = { n_configs, n_tau };
+        struct Matrix slice = 
+            this->reshape( this->RAW_DATA[ni], shape, 1 );
+
+        // Pointer and structure to hold the samples
+        double* hold_resample = new double[rows];
+        struct Matrix resample;
+
+        // Get the average and the variance for each sample
+        double* hold_avg = new double[nboot * n_tau];
+        double* hold_var = new double[nboot * n_tau];
+
+        // Auxiliary variables
+        double* avg; double* var;
+
+        // Run the bootstrap
+        for ( unsigned nb = 0; nb < nboot; nb++ ) {
+            // Generate a bootstrap resample
+            for ( unsigned nc = 0; nc < n_configs; nc++ ) {
+                pick_nc = sampler(this->random_eng);
+                for ( unsigned nt = 0; nt < n_tau; nt++ ) {
+                    index = pick_nc * n_tau + nt;
+                    hold_resample[nc * n_tau + nt] = 
+                        slice.data[index];
+                }
+            }
+            // Calculate the average of that resample
+            resample = { hold_resample, n_configs, n_tau, n_tau };
+
+            avg = this->avg( resample );
+            var = this->var( resample, avg );
+
+            // Fill hold_avg and hold_var with this estimations
+            for ( unsigned nt = 0; nt < n_tau; nt++ ) {
+                hold_avg[nb * n_tau + nt] = avg[nt];
+                hold_var[nb * n_tau + nt] = var[nt];
+            }
+        }
+
+        delete [] avg;
+        delete [] var;
+
+        // Convert into Matrix 
+        Matrix est_avg = { hold_avg, nboot, n_tau, n_tau };
+        Matrix est_var = { hold_var, nboot, n_tau, n_tau };
+
+        // Calculate the average on all the resamples
+        double* best_avg = this->avg( est_avg );
+        double* best_var = this->avg( est_var );
+
+        // Fill a matrix with these values
+        double* best_corr =  new double[n_tau * 2];
+        for ( unsigned nt = 0; nt < n_tau; nt++ ) {
+            best_corr[nt * 2 + 0] = best_avg[nt];
+            best_corr[nt * 2 + 1] = best_var[nt];
+        }
+
+        // Free some space
+        delete [] hold_avg;
+        delete [] hold_var;
+        delete [] hold_resample;
+
+        // Set the matrix 
+        this->boots_central[ni] = { best_corr, n_tau, 2, n_tau };
+    }
+}
+
+void Correlator::sig_to_noise() {
+    /*
+       Method to calculate signal to noise in a correlation function.
+       The method implements,
+            StN(C(\tau)) = \bar{C}(\tau) / sqrt(Var(C(\tau))
+    */
+
+    // Make sure the central value is calculated
+    if ( !this->bool_central ) {
+        this->central_value(1);
+    }
+
+    // Allocate the memory
+    this->sig2noise = new Matrix[this->num_inputs];
+
+    for ( unsigned ni = 0; ni < this->num_inputs; ni++ ) {
+
+        unsigned n_tau = this->central[ni].time_extent;
+        unsigned cols = this->central[ni].col_size;
+        double* sig_noise = new double[n_tau];
+
+        for( unsigned nt = 0; nt < n_tau; nt++ ) { 
+            sig_noise[nt] = \
+                this->central[ni].data[nt * cols + 0] / \
+                std::sqrt( this->central[ni].data[nt * cols + 1] );
+        }
+
+        this->sig2noise[ni] = { sig_noise, n_tau, 1, n_tau };
+    }
+}
+
 // 
 // void Corr::cov_matrix( unsigned tmin, unsigned tmax, 
 //         unsigned nboot ) {
