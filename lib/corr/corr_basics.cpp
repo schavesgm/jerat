@@ -149,9 +149,6 @@ void Correlator::bootstrap_central( const unsigned nboot,
                 hold_var[nb * n_tau + nt] = var[nt];
             }
         }
-        // // delete [] avg;
-        // // delete [] var;
-
         // Convert into Matrix 
         Matrix est_avg = { hold_avg, nboot, n_tau, n_tau };
         Matrix est_var = { hold_var, nboot, n_tau, n_tau };
@@ -167,14 +164,17 @@ void Correlator::bootstrap_central( const unsigned nboot,
             best_corr[nt * 2 + 1] = best_var[nt];
         }
 
-
-        // // Free space
-        // // delete [] hold_avg;
-        // // delete [] hold_var;
-        // // delete [] hold_resample;
-
         // Set the matrix 
         this->boots_central[ni] = { best_corr, n_tau, 2, n_tau };
+
+        // Free space
+        delete [] avg;
+        delete [] var;
+        delete [] best_avg; 
+        delete [] best_var;
+        delete [] resample.data;
+        delete [] slice.data;
+
     }
 }
 
