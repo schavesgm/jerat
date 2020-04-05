@@ -11,6 +11,6 @@
 // Load definitions
 #include "defs.hpp"
 
-struct Matrix load_data( struct Input, std::string = "#" );
+struct Matrix load_data( Input, std::string = "#" );
 
 #endif

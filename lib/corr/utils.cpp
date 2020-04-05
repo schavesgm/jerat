@@ -3,6 +3,14 @@
    This file contains all the utils
 */
 
+void Correlator::free_matrix( Matrix* matrix ) {
+    
+    for ( unsigned ni = 0; ni < this->num_inputs; ni++ ) {
+        delete[] matrix[ni].data;
+    }
+    delete matrix;
+}
+
 double* Correlator::avg( Matrix data ) {
     /*
        Calculate the average of data in the column axis.
@@ -19,7 +27,6 @@ double* Correlator::avg( Matrix data ) {
         for ( unsigned nr = 0; nr < rows; nr++ ) {
             index = ( nr * cols + nc );
             aux_mean += data.data[index];
-            // std::cout << data.data[index] << " ";
         }
         avg_data[nc] = aux_mean / rows;
     }

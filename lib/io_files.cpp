@@ -1,6 +1,6 @@
 #include "io_files.hpp"
 
-struct Matrix load_data( struct Input input, std::string comm_char ) {
+struct Matrix load_data( Input input, std::string comm_char ) {
     /*
        Function to load data from file. The function is able to skip
        comments inside the file. Default comment character is #.

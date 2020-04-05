@@ -11,13 +11,28 @@ Correlator::Correlator( struct Input* inputs,
     this->num_inputs = num_inputs;
 
     // // Load the data in file inside a pointer 
-    for ( unsigned ni = 0; ni < 2; ni++ ) {
+    for ( unsigned ni = 0; ni < num_inputs; ni++ ) {
         this->RAW_DATA[ni] = load_data( inputs[ni] );
     }
 
     // Set the seed
     this->seed = seed;
-    this->random_eng.seed(seed);
+    this->random_eng.seed(this->seed);
+}
+
+Correlator::~Correlator() {
+    // Destructor -- Free all the pointers
+    
+    this->free_matrix( this->RAW_DATA );
+    if ( this->bool_central ) {
+        this->free_matrix( this->central );
+    }
+    if ( this->bool_sig2noise ) {
+        this->free_matrix( this->sig2noise );
+    }
+    // if( this->bool_bootstrap ) {
+    //     this->free_matrix( this->boots_central );
+    // }
 }
 
 void Correlator::central_value( const unsigned col ) {
@@ -38,7 +53,7 @@ void Correlator::central_value( const unsigned col ) {
     // Allocate the memory
     this->central = new Matrix[this->num_inputs];
 
-    for ( unsigned ni = 0; ni < num_inputs; ni++ ) {
+    for ( unsigned ni = 0; ni < this->num_inputs; ni++ ) {
 
         // Calculate the central value for each input
         unsigned rows = this->RAW_DATA[ni].row_size;
@@ -73,10 +88,16 @@ void Correlator::bootstrap_central( const unsigned nboot,
        function.
     */
     // Let the code know you have calculated bootstrap
+
     this->bool_bootstrap = true;
 
     // Allocate the memory
     this->boots_central = new Matrix[this->num_inputs];
+
+    // Auxiliary variables
+    double* avg; 
+    double* var;
+
     unsigned index, pick_nc;
 
     for ( unsigned ni = 0; ni < this->num_inputs; ni++ ) {
@@ -85,7 +106,9 @@ void Correlator::bootstrap_central( const unsigned nboot,
         unsigned rows = this->RAW_DATA[ni].row_size;
         unsigned cols = this->RAW_DATA[ni].col_size;
         unsigned n_tau = this->RAW_DATA[ni].time_extent;
-        unsigned n_configs = rows / n_tau;
+
+        // unsigned n_configs = rows / n_tau;
+        unsigned n_configs = 2;
 
         // Generate the sampler
         std::uniform_int_distribution<int> sampler(0, n_configs);
@@ -96,15 +119,12 @@ void Correlator::bootstrap_central( const unsigned nboot,
             this->reshape( this->RAW_DATA[ni], shape, 1 );
 
         // Pointer and structure to hold the samples
-        double* hold_resample = new double[rows];
+        double* hold_resample = new double[rows]{ 0.0 };
         struct Matrix resample;
 
         // Get the average and the variance for each sample
-        double* hold_avg = new double[nboot * n_tau];
-        double* hold_var = new double[nboot * n_tau];
-
-        // Auxiliary variables
-        double* avg; double* var;
+        double* hold_avg = new double[nboot * n_tau]{ 0.0 };
+        double* hold_var = new double[nboot * n_tau]{ 0.0 };
 
         // Run the bootstrap
         for ( unsigned nb = 0; nb < nboot; nb++ ) {
@@ -122,16 +142,15 @@ void Correlator::bootstrap_central( const unsigned nboot,
 
             avg = this->avg( resample );
             var = this->var( resample, avg );
-
+            
             // Fill hold_avg and hold_var with this estimations
             for ( unsigned nt = 0; nt < n_tau; nt++ ) {
                 hold_avg[nb * n_tau + nt] = avg[nt];
                 hold_var[nb * n_tau + nt] = var[nt];
             }
         }
-
-        delete [] avg;
-        delete [] var;
+        // // delete [] avg;
+        // // delete [] var;
 
         // Convert into Matrix 
         Matrix est_avg = { hold_avg, nboot, n_tau, n_tau };
@@ -142,16 +161,17 @@ void Correlator::bootstrap_central( const unsigned nboot,
         double* best_var = this->avg( est_var );
 
         // Fill a matrix with these values
-        double* best_corr =  new double[n_tau * 2];
+        double* best_corr =  new double[n_tau * 2]{ 0.0 };
         for ( unsigned nt = 0; nt < n_tau; nt++ ) {
             best_corr[nt * 2 + 0] = best_avg[nt];
             best_corr[nt * 2 + 1] = best_var[nt];
         }
 
-        // Free some space
-        delete [] hold_avg;
-        delete [] hold_var;
-        delete [] hold_resample;
+
+        // // Free space
+        // // delete [] hold_avg;
+        // // delete [] hold_var;
+        // // delete [] hold_resample;
 
         // Set the matrix 
         this->boots_central[ni] = { best_corr, n_tau, 2, n_tau };
@@ -169,6 +189,7 @@ void Correlator::sig_to_noise() {
     if ( !this->bool_central ) {
         this->central_value(1);
     }
+    this->bool_sig2noise = true;
 
     // Allocate the memory
     this->sig2noise = new Matrix[this->num_inputs];

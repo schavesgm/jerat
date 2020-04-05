@@ -22,6 +22,7 @@ class Correlator {
         std::mt19937 random_eng;
 
         Correlator( Input*, unsigned, unsigned = 123 );
+        ~Correlator();
         void central_value( const unsigned = 1 );
         void bootstrap_central( const unsigned = 200, 
             const unsigned = 1 );
@@ -30,6 +31,7 @@ class Correlator {
     private:
 
         bool bool_central = false;
+        bool bool_sig2noise = false;
         bool bool_bootstrap = false;
 
         double* avg( Matrix );
@@ -38,6 +40,8 @@ class Correlator {
         struct Matrix reshape( 
             Matrix, const unsigned*, const unsigned = 1
         );
+
+        void free_matrix( Matrix* );
 
         // struct matrix best_est;
         // struct matrix cent;

@@ -26,10 +26,20 @@ int main() {
             time_extent };
     }
     Correlator corr( ins, num_files );
-    corr.sig_to_noise();
-    std::cout << corr.sig2noise[1].data[0] << " " <<
-        corr.sig2noise[1].data[1] << " " << 
-        corr.sig2noise[1].data[time_extent - 1] << std::endl;
+    corr.bootstrap_central();
+
+    for ( unsigned i = 0; i < time_extent; i++ ) {
+        std::cout << corr.boots_central[0].data[2 * i] <<
+            std::endl;
+    }
+    // std::cout << corr.boots_central[0].data[time_extent * 2 - 2] << " " <<
+    //     corr.boots_central[0].data[time_extent * 2 - 1] << std::endl;
+    // std::cout << corr.boots_central[1].data[time_extent * 2 - 2] << " " <<
+    //     corr.boots_central[1].data[time_extent * 2 - 1] << std::endl;
+
+    // std::cout << corr.sig2noise[1].data[0] << " " <<
+    //     corr.sig2noise[1].data[1] << " " << 
+    //     corr.sig2noise[1].data[time_extent - 1] << std::endl;
     // std::cout << corr.boots_central[1].data[0] << " " <<
     //     corr.boots_central[1].data[1] << std::endl;
     // std::cout << corr.boots_central[1].data[2] << " " <<
