@@ -177,124 +177,146 @@ TEST_CASE( "Correlation function class", "[Corr]" ) {
 
         // Generate a Correlator object
         Correlator corr( ins, num_files );
+        unsigned* tmax;
 
-        corr.get_tmax( 1.0, 0.75 ); 
+        tmax = corr.get_tmax( 1.0, 0.75 ); 
         REQUIRE( corr.t_max[0] == 36 );
+        REQUIRE( tmax[0] == 36 );
         REQUIRE( corr.t_max[1] == 36 );
-        corr.get_tmax( 1.0, 0.5 ); 
+        REQUIRE( tmax[1] == 36 );
+
+        tmax = corr.get_tmax( 1.0, 0.5 ); 
         REQUIRE( corr.t_max[0] == 24 );
+        REQUIRE( tmax[0] == 24 );
         REQUIRE( corr.t_max[1] == 24 );
-        corr.get_tmax( 0.5, 0.5 ); 
+        REQUIRE( tmax[1] == 24 );
+
+        tmax = corr.get_tmax( 0.5, 0.5 ); 
         REQUIRE( corr.t_max[0] == 24 );
+        REQUIRE( tmax[0] == 24 );
         REQUIRE( corr.t_max[1] == 24 );
-        corr.get_tmax( 0.1, 0.5 ); 
+        REQUIRE( tmax[1] == 24 );
+
+        tmax = corr.get_tmax( 0.1, 0.5 ); 
         REQUIRE( corr.t_max[0] == 7 );
+        REQUIRE( tmax[0] == 7 );
         REQUIRE( corr.t_max[1] == 24 );
+        REQUIRE( tmax[1] == 24 );
     }
     SECTION( "Test minimum time" ) {
 
         // Generate a Corr object
         Correlator corr( ins, num_files );
+        unsigned* tmin;
 
-        corr.get_tmin( 10 );
+        tmin = corr.get_tmin( 10 );
         REQUIRE( corr.t_min[0] == 19 );
+        REQUIRE( tmin[0] == 19 );
         REQUIRE( corr.t_min[1] == 19 );
+        REQUIRE( tmin[1] == 19 );
 
         Correlator cpy( ins, num_files );
-        cpy.get_tmin( 5 );
+        tmin = cpy.get_tmin( 5 );
         REQUIRE( cpy.t_min[0] == 22 );
+        REQUIRE( tmin[0] == 22 );
         REQUIRE( cpy.t_min[1] == 23 );
+        REQUIRE( tmin[1] == 23 );
     }
+    SECTION( "Test covariance matrix and tt matrix" ) {
 
-    // ----------------------------------------------------------
-    // SECTION( "Test covariance matrix and tt matrix" ) {
+        // Generate a Corr object
+        Correlator corr( ins, num_files );
 
-    //     // Generate a Corr object
-    //     Corr corr( file_name, row_size, col_size, 
-    //         time_extent, 123 );
-    //     corr.cov_matrix( 1, 2, 10 );
+        // Generate the initial and final times
+        unsigned* tmin = new unsigned[num_files];
+        unsigned* tmax = new unsigned[num_files];
+        for ( unsigned i = 0; i < num_files; i++ ) {
+            tmin[i] = 0;
+            tmax[i] = 2;
+        }
 
-    //     // Check the dimensions for covariance and tt matrix
-    //     REQUIRE( corr.covmat.row_size == 2 );
-    //     REQUIRE( corr.ttmat.row_size == 2 );
-    //     REQUIRE( corr.covmat.col_size == 2 );
-    //     REQUIRE( corr.ttmat.col_size == 2 );
-    //     REQUIRE( corr.covmat.time_extent == time_extent );
-    //     REQUIRE( corr.ttmat.time_extent == time_extent );
+        // Generate the covariance matrix for 10 iterations
+        corr.cov_matrix( tmin, tmax, 1 );
 
-    //     // Check the values for different number of bootstrap 
+        // Check the dimensions
+        for ( unsigned i = 0; i < num_files; i++ ) {
+            REQUIRE( corr.cov_mat[i].row_size == 3 );
+            REQUIRE( corr.cov_mat[i].col_size == 3 );
+            REQUIRE( corr.cov_mat[i].row_size == 
+                    corr.tt_mat[i].row_size );
+            REQUIRE( corr.cov_mat[i].col_size == 
+                    corr.tt_mat[i].col_size );
+            REQUIRE( corr.cov_mat[i].time_extent == time_extent );
+            REQUIRE( corr.tt_mat[i].time_extent == time_extent );
+        }
+        
+        double first_A[3] = { 0.00557809, 0.00153316, 0.000654207 };
+        double first_B[3] = { 0.00487467, 0.000977171, 0.000363822 };
 
-    //     // For 10 bootstrap iterations
-    //     REQUIRE( corr.covmat.data[0] == 
-    //             Approx( 0.00069538 ).margin( 0.00001 ) );
-    //     REQUIRE( corr.covmat.data[3] == 
-    //             Approx( 0.000192328 ).margin( 0.00001 ) );
-    //     REQUIRE( corr.covmat.data[1] == 
-    //             Approx( 0.000116838 ).margin( 0.00001 ) );
-    //     REQUIRE( corr.covmat.data[2] == 
-    //             Approx( 0.000116838 ).margin( 0.00001 ) );
+        double secon_A[3] = { 0.00153316, 0.000543694, 0.000231497 };
+        double secon_B[3] = { 0.000977171, 0.00025876, 9.31834e-05 };
 
-    //     REQUIRE( corr.ttmat.data[0] == 
-    //             Approx( 0.00069538 ).margin( 0.00001 ) );
-    //     REQUIRE( corr.ttmat.data[3] == 
-    //             Approx( 0.000192328 ).margin( 0.00001 ) );
-    //     REQUIRE( corr.ttmat.data[1] == 0.0 );
-    //     REQUIRE( corr.ttmat.data[2] == 0.0 );
+        double third_A[3] = { 0.000654207, 0.00023149, 0.000131097 };
+        double third_B[3] = { 0.00036382, 9.31834e-05, 4.77836e-05 };
 
-    //     // For 100 bootstrap iterations
-    //     corr.cov_matrix( 1, 2, 100 );
-    //     REQUIRE( corr.covmat.data[0] == 
-    //             Approx( 0.000816549 ).margin( 0.00001 ) );
-    //     REQUIRE( corr.covmat.data[3] == 
-    //             Approx( 0.000238198 ).margin( 0.00001 ) );
-    //     REQUIRE( corr.covmat.data[1] == 
-    //             Approx( 5.20208e-05 ).margin( 0.00001 ) );
-    //     REQUIRE( corr.covmat.data[2] == 
-    //             Approx( 5.20208e-05 ).margin( 0.00001 ) );
+        for ( unsigned i = 0; i < 3; i++ ) {
+            REQUIRE( corr.cov_mat[0].data[i] == 
+                Approx( first_A[i] ).margin( 0.0001 ) );
+            REQUIRE( corr.cov_mat[1].data[i] == 
+                Approx( first_B[i] ).margin( 0.0001 ) );
+            REQUIRE( corr.cov_mat[0].data[3 + i] == 
+                Approx( secon_A[i] ).margin( 0.0001 ) );
+            REQUIRE( corr.cov_mat[1].data[3 + i] == 
+                Approx( secon_B[i] ).margin( 0.0001 ) );
+            REQUIRE( corr.cov_mat[0].data[6 + i] == 
+                Approx( third_A[i] ).margin( 0.0001 ) );
+            REQUIRE( corr.cov_mat[1].data[6 + i] == 
+                Approx( third_B[i] ).margin( 0.0001 ) );
+        }
 
-    //     REQUIRE( corr.ttmat.data[0] == 
-    //             Approx( 0.000816549 ).margin( 0.00001 ) );
-    //     REQUIRE( corr.ttmat.data[3] == 
-    //             Approx( 0.000238198 ).margin( 0.00001 ) );
-    //     REQUIRE( corr.ttmat.data[1] == 0.0 );
-    //     REQUIRE( corr.ttmat.data[2] == 0.0 );
+        // Generate a Corr object
+        // Generate the covariance matrix for 10 iterations
 
-    //     // // For 200 bootstrap iterations
-    //     corr.cov_matrix( 1, 2, 200 );
-    //     REQUIRE( corr.covmat.data[0] == 
-    //             Approx( 0.00075124 ).margin( 0.00001 ) );
-    //     REQUIRE( corr.covmat.data[3] == 
-    //             Approx( 0.000211729 ).margin( 0.00001 ) );
-    //     REQUIRE( corr.covmat.data[1] == 
-    //             Approx( 8.97346e-05 ).margin( 0.00001 ) );
-    //     REQUIRE( corr.covmat.data[2] == 
-    //             Approx( 8.97346e-05 ).margin( 0.00001 ) );
+        // Check the dimensions
+        // for ( unsigned i = 0; i < num_files; i++ ) {
+        //     REQUIRE( corr.cov_mat[i].row_size == 3 );
+        //     REQUIRE( corr.cov_mat[i].col_size == 3 );
+        //     REQUIRE( corr.cov_mat[i].row_size == 
+        //             corr.tt_mat[i].row_size );
+        //     REQUIRE( corr.cov_mat[i].col_size == 
+        //             corr.tt_mat[i].col_size );
+        //     REQUIRE( corr.cov_mat[i].time_extent == time_extent );
+        //     REQUIRE( corr.tt_mat[i].time_extent == time_extent );
+        // }
+        // 
+        // double first_A[3] = { 0.00557809, 0.00153316, 0.000654207 };
+        // double first_B[3] = { 0.00487467, 0.000977171, 0.000363822 };
 
-    //     REQUIRE( corr.ttmat.data[0] == 
-    //             Approx( 0.00075124 ).margin( 0.00001 ) );
-    //     REQUIRE( corr.ttmat.data[3] == 
-    //             Approx( 0.000211729 ).margin( 0.00001 ) );
-    //     REQUIRE( corr.ttmat.data[1] == 0.0 );
-    //     REQUIRE( corr.ttmat.data[2] == 0.0 );
+        // double secon_A[3] = { 0.00153316, 0.000543694, 0.000231497 };
+        // double secon_B[3] = { 0.000977171, 0.00025876, 9.31834e-05 };
 
-    //     // For 1000 bootstrap iterations
-    //     corr.cov_matrix( 1, 2, 1000 );
-    //     REQUIRE( corr.covmat.data[0] == 
-    //             Approx( 0.000770036 ).margin( 0.00001 ) );
-    //     REQUIRE( corr.covmat.data[3] == 
-    //             Approx( 0.000218769 ).margin( 0.00001 ) );
-    //     REQUIRE( corr.covmat.data[1] == 
-    //             Approx( 7.87164e-05 ).margin( 0.00001 ) );
-    //     REQUIRE( corr.covmat.data[2] == 
-    //             Approx( 7.87164e-05 ).margin( 0.00001 ) );
+        // double third_A[3] = { 0.000654207, 0.00023149, 0.000131097 };
+        // double third_B[3] = { 0.00036382, 9.31834e-05, 4.77836e-05 };
 
-    //     REQUIRE( corr.ttmat.data[0] == 
-    //             Approx( 0.000770036 ).margin( 0.00001 ) );
-    //     REQUIRE( corr.ttmat.data[3] == 
-    //             Approx( 0.000218769 ).margin( 0.00001 ) );
-    //     REQUIRE( corr.ttmat.data[1] == 0.0 );
-    //     REQUIRE( corr.ttmat.data[2] == 0.0 );
-    // }
+        // for ( unsigned i = 0; i < 3; i++ ) {
+        //     REQUIRE( corr.cov_mat[0].data[i] == 
+        //         Approx( first_A[i] ).margin( 0.0001 ) );
+        //     REQUIRE( corr.cov_mat[1].data[i] == 
+        //         Approx( first_B[i] ).margin( 0.0001 ) );
+        //     REQUIRE( corr.cov_mat[0].data[3 + i] == 
+        //         Approx( secon_A[i] ).margin( 0.0001 ) );
+        //     REQUIRE( corr.cov_mat[1].data[3 + i] == 
+        //         Approx( secon_B[i] ).margin( 0.0001 ) );
+        //     REQUIRE( corr.cov_mat[0].data[6 + i] == 
+        //         Approx( third_A[i] ).margin( 0.0001 ) );
+        //     REQUIRE( corr.cov_mat[1].data[6 + i] == 
+        //         Approx( third_B[i] ).margin( 0.0001 ) );
+        // }
+
+        delete[] tmin;
+        delete[] tmax;
+
+    }
 }
 #endif
 
