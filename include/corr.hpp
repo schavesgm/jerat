@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <random>
+#include <assert.h>
 
 #include "defs.hpp"
 #include "io_files.hpp"
@@ -15,6 +16,9 @@ class Correlator {
         Matrix* central;
         Matrix* boots_central;
         Matrix* sig2noise;
+
+        unsigned* t_max;
+        unsigned* t_min;
         
         // Utils
         unsigned num_inputs;
@@ -28,11 +32,20 @@ class Correlator {
             const unsigned = 1 );
         void sig_to_noise();
 
+        void get_tmax( double, double, bool = false );
+        void get_tmin( unsigned ); 
+
+        // void covariance( const unsigned, const unsigned,
+        //         const unsigned = 200 );
+
     private:
 
         bool bool_central = false;
         bool bool_sig2noise = false;
         bool bool_bootstrap = false;
+        bool bool_covariance = false;
+        bool bool_tmax = false;
+        bool bool_tmin = false;
 
         double* avg( Matrix );
         double* var( Matrix, double* );

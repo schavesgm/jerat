@@ -12,11 +12,14 @@ $(LINK_TARGET): objs main $(CORRS)
 	$(CXX) $(CXFLAGS) -o $@ $(foreach obj,$(OBJS), $</$(obj).o ) \
 	    -I $(INC)
 
-main: objs corr_basics
+main: objs corr_basics corr_tree
 	$(CXX) $(CXFLAGS) -o $</$@.o -c $@.cpp -I $(INC)
 
 # Compile all the correlation function codes
-CORRS = utils corr_basics
+CORRS = utils corr_basics corr_tree
+corr_tree: objs corr_basics
+	$(CXX) $(CXFLAGS) -o $</$@.o -c $(LIB)/corr/$@.cpp -I $(INC)
+
 corr_basics: objs utils
 	$(CXX) $(CXFLAGS) -o $</$@.o -c $(LIB)/corr/$@.cpp -I $(INC)
 

@@ -24,15 +24,18 @@ Correlator::~Correlator() {
     // Destructor -- Free all the pointers
     
     this->free_matrix( this->RAW_DATA );
-    if ( this->bool_central ) {
+    if ( this->bool_central )
         this->free_matrix( this->central );
-    }
-    if ( this->bool_sig2noise ) {
+    if ( this->bool_sig2noise )
         this->free_matrix( this->sig2noise );
-    }
-    // if( this->bool_bootstrap ) {
-    //     this->free_matrix( this->boots_central );
-    // }
+    if ( this->bool_bootstrap )
+        this->free_matrix( this->boots_central );
+
+    // Free tmax and tmin
+    if ( this->bool_tmax )
+        delete[] this->t_max;
+    if ( this->bool_tmin )
+        delete[] this->t_min;
 }
 
 void Correlator::central_value( const unsigned col ) {
@@ -210,10 +213,9 @@ void Correlator::sig_to_noise() {
     }
 }
 
-// 
+ 
 // void Corr::cov_matrix( unsigned tmin, unsigned tmax, 
 //         unsigned nboot ) {
-// 
 // 
 //     // We need to include the last point
 //     unsigned window = tmax - tmin + 1; 
