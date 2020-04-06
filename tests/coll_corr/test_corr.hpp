@@ -60,121 +60,119 @@ TEST_CASE( "Correlation function class", "[Corr]" ) {
         corr.bootstrap_central();
 
         // Check dimensions
-        // REQUIRE( corr.boots_central[0].row_size == time_extent );
-        // REQUIRE( corr.boots_central[1].row_size == time_extent );
-        // REQUIRE( corr.boots_central[0].col_size == 2 );
-        // REQUIRE( corr.boots_central[1].col_size == 2 );
-        // REQUIRE( corr.boots_central[0].time_extent == time_extent );
-        // REQUIRE( corr.boots_central[1].time_extent == time_extent );
+        REQUIRE( corr.boots_central[0].row_size == time_extent );
+        REQUIRE( corr.boots_central[1].row_size == time_extent );
+        REQUIRE( corr.boots_central[0].col_size == 2 );
+        REQUIRE( corr.boots_central[1].col_size == 2 );
+        REQUIRE( corr.boots_central[0].time_extent == time_extent );
+        REQUIRE( corr.boots_central[1].time_extent == time_extent );
 
-        for ( unsigned i = 0; i < time_extent; i++ ) {
-            std::cout << corr.boots_central[0].data[i * 2] << std::endl;
-        }
+ 
+        // Check the first values
+         
+        REQUIRE( corr.boots_central[0].data[0] == 
+                Approx( 3.82699 ).margin( 0.00001 ) );
+        REQUIRE( corr.boots_central[0].data[1] == 
+                Approx( 0.00117 ).margin( 0.0001 ) );
+        REQUIRE( corr.boots_central[1].data[0] == 
+                Approx( -3.5797 ).margin( 0.0001 ) );
+        REQUIRE( corr.boots_central[1].data[1] == 
+                Approx( 0.00043 ).margin( 0.0001 ) );
+
+        // Check the second values
+        REQUIRE( corr.boots_central[0].data[2] == 
+                Approx( 0.739083 ).margin( 0.00001 ) );
+        REQUIRE( corr.boots_central[0].data[3] == 
+                Approx( 0.000175 ).margin( 0.0001 ) );
+        REQUIRE( corr.boots_central[1].data[2] == 
+                Approx( -0.62902 ).margin( 0.00001 ) );
+        REQUIRE( corr.boots_central[1].data[3] == 
+                Approx( 7.419e-05 ).margin( 0.0001 ) );
+
+        // Check the last values
+        REQUIRE( corr.boots_central[0].data[time_extent * 2 - 2] == \
+                Approx( 0.71723 ).margin( 0.00001 ) );
+        REQUIRE( corr.boots_central[0].data[time_extent * 2 - 1] == \
+                Approx( 8.97537e-05 ).margin( 0.0001 ) );
+        REQUIRE( corr.boots_central[1].data[time_extent * 2 - 2] == \
+                Approx( -0.616186 ).margin( 0.00001 ) );
+        REQUIRE( corr.boots_central[1].data[time_extent * 2 - 1] == \
+                Approx( 2.81392e-05 ).margin( 0.0001 ) );
+    }
+    SECTION( "Test central value -> Average and Variance" ) {
+
+        // Create an object
+        Correlator corr( ins, num_files );
+        corr.central_value();
+
+        // Check the dimensions of the central value
+        REQUIRE( corr.central[0].row_size == time_extent );
+        REQUIRE( corr.central[1].row_size == time_extent );
+        REQUIRE( corr.central[0].col_size == 2 );
+        REQUIRE( corr.central[1].col_size == 2 );
+        REQUIRE( corr.central[0].time_extent == time_extent );
+        REQUIRE( corr.central[1].time_extent == time_extent );
+
+        // Check the values obtained
 
         // Check the first values
-        // REQUIRE( corr.boots_central[0].data[0] == 
-        //         Approx( 3.8672 ).margin( 0.00001 ) );
-        // REQUIRE( corr.boots_central[0].data[1] == 
-        //         Approx( 0.0121 ).margin( 0.0001 ) );
-        // REQUIRE( corr.boots_central[1].data[0] == 
-        //         Approx( -3.60394 ).margin( 0.00001 ) );
-        // REQUIRE( corr.boots_central[1].data[1] == 
-        //         Approx( 0.00480 ).margin( 0.0001 ) );
+        REQUIRE( corr.central[0].data[0] == 
+                Approx( 3.86904 ).margin( 0.00001 ) );
+        REQUIRE( corr.central[0].data[1] == 
+                Approx( 0.00528 ).margin( 0.00001 ) );
+        REQUIRE( corr.central[1].data[0] == 
+                Approx( -3.60454 ).margin( 0.00001 ) );
+        REQUIRE( corr.central[1].data[1] == 
+                Approx( 0.002914 ).margin( 0.00001 ) );
 
-        // // Check the second values
-        // REQUIRE( corr.boots_central[0].data[2] == 
-        //         Approx( 0.741337 ).margin( 0.00001 ) );
-        // REQUIRE( corr.boots_central[0].data[3] == 
-        //         Approx( 0.000781 ).margin( 0.0001 ) );
-        // REQUIRE( corr.boots_central[1].data[2] == 
-        //         Approx( -0.627261 ).margin( 0.00001 ) );
-        // REQUIRE( corr.boots_central[1].data[3] == 
-        //         Approx( 0.000252 ).margin( 0.0001 ) );
+        // Check the second values
+        REQUIRE( corr.central[0].data[2] == 
+                Approx( 0.741684 ).margin( 0.00001 ) );
+        REQUIRE( corr.central[0].data[3] == 
+                Approx( 0.00053 ).margin( 0.00001 ) );
+        REQUIRE( corr.central[1].data[2] == 
+                Approx( -0.627362 ).margin( 0.00001 ) );
+        REQUIRE( corr.central[1].data[3] == 
+                Approx( 0.000194 ).margin( 0.00001 ) );
 
-        // // Check the last values
-        // REQUIRE( corr.boots_central[0].data[time_extent * 2 - 2] == \
-        //         Approx( 0.74149 ).margin( 0.00001 ) );
-        // REQUIRE( corr.boots_central[0].data[time_extent * 2 - 1] == \
-        //         Approx( 0.00080 ).margin( 0.0001 ) );
-        // REQUIRE( corr.boots_central[1].data[time_extent * 2 - 2] == \
-        //         Approx( -0.627261 ).margin( 0.00001 ) );
-        // REQUIRE( corr.boots_central[1].data[time_extent * 2 - 1] == \
-        //         Approx( 0.000260 ).margin( 0.0001 ) );
+        // Check the last values
+        REQUIRE( corr.central[0].data[time_extent * 2 - 2] == \
+                Approx( 0.741828 ).margin( 0.00001 ) );
+        REQUIRE( corr.central[0].data[time_extent * 2 - 1] == \
+                Approx( 0.000554 ).margin( 0.00001 ) );
+        REQUIRE( corr.central[1].data[time_extent * 2 - 2] == \
+                Approx( -0.62737 ).margin( 0.00001 ) );
+        REQUIRE( corr.central[1].data[time_extent * 2 - 1] == \
+                Approx( 0.000202 ).margin( 0.00001 ) );
     }
-    // SECTION( "Test central value -> Average and Variance" ) {
+    SECTION( "Test signal to noise" ) {
 
-    //     // Create an object
-    //     Correlator corr( ins, num_files );
-    //     corr.central_value();
+        // Create an object
+        Correlator corr( ins, num_files );
+        corr.sig_to_noise();
 
-    //     // Check the dimensions of the central value
-    //     REQUIRE( corr.central[0].row_size == time_extent );
-    //     REQUIRE( corr.central[1].row_size == time_extent );
-    //     REQUIRE( corr.central[0].col_size == 2 );
-    //     REQUIRE( corr.central[1].col_size == 2 );
-    //     REQUIRE( corr.central[0].time_extent == time_extent );
-    //     REQUIRE( corr.central[1].time_extent == time_extent );
+        // Check dimensions
+        REQUIRE( corr.sig2noise[0].time_extent == 
+                corr.sig2noise[0].row_size );
+        REQUIRE( corr.sig2noise[0].col_size == 1 );
+        REQUIRE( corr.sig2noise[1].time_extent == 
+                corr.sig2noise[1].row_size );
+        REQUIRE( corr.sig2noise[1].col_size == 1 );
 
-    //     // Check the values obtained
+        // Check the values
 
-    //     // Check the first values
-    //     REQUIRE( corr.central[0].data[0] == 
-    //             Approx( 3.86904 ).margin( 0.00001 ) );
-    //     REQUIRE( corr.central[0].data[1] == 
-    //             Approx( 0.00528 ).margin( 0.00001 ) );
-    //     REQUIRE( corr.central[1].data[0] == 
-    //             Approx( -3.60454 ).margin( 0.00001 ) );
-    //     REQUIRE( corr.central[1].data[1] == 
-    //             Approx( 0.002914 ).margin( 0.00001 ) );
+        // For the first file
+        REQUIRE( corr.sig2noise[0].data[0] == Approx( 53.2299 ) );
+        REQUIRE( corr.sig2noise[0].data[1] == Approx( 32.2152 ) );
+        REQUIRE( corr.sig2noise[0].data[time_extent-1] == 
+                Approx( 31.511 ) );
 
-    //     // Check the second values
-    //     REQUIRE( corr.central[0].data[2] == 
-    //             Approx( 0.741684 ).margin( 0.00001 ) );
-    //     REQUIRE( corr.central[0].data[3] == 
-    //             Approx( 0.00053 ).margin( 0.00001 ) );
-    //     REQUIRE( corr.central[1].data[2] == 
-    //             Approx( -0.627362 ).margin( 0.00001 ) );
-    //     REQUIRE( corr.central[1].data[3] == 
-    //             Approx( 0.000194 ).margin( 0.00001 ) );
-
-    //     // Check the last values
-    //     REQUIRE( corr.central[0].data[time_extent * 2 - 2] == \
-    //             Approx( 0.741828 ).margin( 0.00001 ) );
-    //     REQUIRE( corr.central[0].data[time_extent * 2 - 1] == \
-    //             Approx( 0.000554 ).margin( 0.00001 ) );
-    //     REQUIRE( corr.central[1].data[time_extent * 2 - 2] == \
-    //             Approx( -0.62737 ).margin( 0.00001 ) );
-    //     REQUIRE( corr.central[1].data[time_extent * 2 - 1] == \
-    //             Approx( 0.000202 ).margin( 0.00001 ) );
-    // }
-    // SECTION( "Test signal to noise" ) {
-
-    //     // Create an object
-    //     Correlator corr( ins, num_files );
-    //     corr.sig_to_noise();
-
-    //     // Check dimensions
-    //     REQUIRE( corr.sig2noise[0].time_extent == 
-    //             corr.sig2noise[0].row_size );
-    //     REQUIRE( corr.sig2noise[0].col_size == 1 );
-    //     REQUIRE( corr.sig2noise[1].time_extent == 
-    //             corr.sig2noise[1].row_size );
-    //     REQUIRE( corr.sig2noise[1].col_size == 1 );
-
-    //     // Check the values
-
-    //     // For the first file
-    //     REQUIRE( corr.sig2noise[0].data[0] == Approx( 53.2299 ) );
-    //     REQUIRE( corr.sig2noise[0].data[1] == Approx( 32.2152 ) );
-    //     REQUIRE( corr.sig2noise[0].data[time_extent-1] == 
-    //             Approx( 31.511 ) );
-
-    //     // For the second file
-    //     REQUIRE( corr.sig2noise[1].data[0] == Approx( -66.7626 ) );
-    //     REQUIRE( corr.sig2noise[1].data[1] == Approx( -44.9311 ) );
-    //     REQUIRE( corr.sig2noise[1].data[time_extent-1] == 
-    //             Approx( -44.0566 ) );
-    // }
+        // For the second file
+        REQUIRE( corr.sig2noise[1].data[0] == Approx( -66.7626 ) );
+        REQUIRE( corr.sig2noise[1].data[1] == Approx( -44.9311 ) );
+        REQUIRE( corr.sig2noise[1].data[time_extent-1] == 
+                Approx( -44.0566 ) );
+    }
 
     // ----------------------------------------------------------
     // SECTION( "Test covariance matrix and tt matrix" ) {
