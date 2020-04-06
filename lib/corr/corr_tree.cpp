@@ -1,6 +1,6 @@
 #include "corr.hpp"
 
-void Correlator::get_tmax( double tol_noise, double tol_temp, 
+unsigned* Correlator::get_tmax( double tol_noise, double tol_temp, 
         bool use_positive ) {
     /* 
        Method to calculate the t_max to fit the data for a given
@@ -57,9 +57,10 @@ void Correlator::get_tmax( double tol_noise, double tol_temp,
             }
         }
     }
+    return this->t_max;
 }
 
-void Correlator::get_tmin( unsigned tplat ) {
+unsigned* Correlator::get_tmin( unsigned tplat ) {
     /*
        Get the beginning of the time window by sampling an 
        integer from the following interval.
@@ -73,7 +74,7 @@ void Correlator::get_tmin( unsigned tplat ) {
 
     // Take care of needed values
     if ( !this->bool_tmax )
-        this->get_tmax( 1.0, 0.75 );
+        unsigned* t_max = this->get_tmax( 1.0, 0.75 );
 
     // Sample the values
     for ( unsigned ni = 0; ni < this->num_inputs; ni++ ) {
@@ -84,4 +85,5 @@ void Correlator::get_tmin( unsigned tplat ) {
 
         this->t_min[ni] = dist(this->random_eng);
     }
+    return this->t_min;
 }

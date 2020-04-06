@@ -30,6 +30,10 @@ Correlator::~Correlator() {
         this->free_matrix( this->sig2noise );
     if ( this->bool_bootstrap )
         this->free_matrix( this->boots_central );
+    if ( this->bool_covariance ) {
+        this->free_matrix( this->cov_mat );
+        this->free_matrix( this->tt_mat );
+    }
 
     // Free tmax and tmin
     if ( this->bool_tmax )
@@ -214,65 +218,89 @@ void Correlator::sig_to_noise() {
 }
 
  
-// void Corr::cov_matrix( unsigned tmin, unsigned tmax, 
-//         unsigned nboot ) {
-// 
-//     // We need to include the last point
-//     unsigned window = tmax - tmin + 1; 
-//     unsigned rows = this->raw.row_size;
-//     unsigned cols = this->raw.col_size;
-//     unsigned n_tau = this->raw.time_extent;
-//     unsigned n_configs = rows / n_tau;
-// 
-//     std::uniform_int_distribution<int> dist(0, n_configs);
-// 
-//     // Slice the matrix 
-//     unsigned shape[2] = { n_configs, n_tau };
-//     struct matrix get_col = this->reshape( this->raw, shape, 1 );
-// 
-//     // Pointer and structure to hold the samples
-//     double* hold_sample = new double[rows];
-//     struct matrix resamp;
-// 
-//     // Get the average and the variance for each sample
-//     unsigned area = window * window;
-//     double* hold_cov = new double[nboot * area];
-// 
-//     // Auxiliary variables
-//     unsigned index, pick_nc, aux_t;
-// 
-//     // Pointers to hold the data
-//     double* cov_sample;
-// 
-//     for ( unsigned nb = 0; nb < nboot; nb++ ) {
-//         // Generate a bootstrap resample
-//         for ( unsigned nc = 0; nc < n_configs; nc++ ) {
-//             pick_nc = dist(this->random_eng);
-//             aux_t = tmin;
-//             for ( unsigned nt = 0; nt < window + 1; nt++ ) {
-//                 index = pick_nc * n_tau + aux_t;
-//                 hold_sample[nc * window + nt] = get_col.data[index];
-//                 aux_t += 1;
-//             }
-//         }
-//         // Calculate the average of that resample
-//         resamp = { hold_sample, n_configs, window, n_tau };
-//         cov_sample = this->cov( resamp );
-// 
-//         // Fill the resampled matrix with the covariance
-//         for ( unsigned nt = 0; nt < area; nt++ ) {
-//             hold_cov[nb * area + nt] = cov_sample[nt];
-//         }
-//     }
-//     
-//     struct matrix est_cov = { hold_cov, nboot, area, n_tau };
-// 
-//     // Calculate the average on all the resamples
-//     double* best_cov = this->avg( est_cov );
-// 
-//     delete [] hold_sample;
-//     delete [] cov_sample;
-// 
-//     this->covmat = { best_cov, window, window, n_tau };
-// }
+void Correlator::cov_matrix( unsigned* t_min, unsigned* t_max, 
+        unsigned nboot ) {
+
+    this->bool_covariance = true;
+
+    // Allocate the memory
+    this->cov_mat = new Matrix[this->num_inputs];
+    this->tt_mat = new Matrix[this->num_inputs];
+
+    for ( unsigned ni = 0; ni < this->num_inputs; ni++ ) {
+
+        assert( t_max[ni] < this->RAW_DATA[ni].time_extent );
+        assert( t_min[ni] < t_max[ni] );
+
+        // We need to include the last point
+        unsigned window = t_max[ni] - t_min[ni] + 1; 
+        unsigned area = window * window;
+        unsigned rows = this->RAW_DATA[ni].row_size;
+        unsigned cols = this->RAW_DATA[ni].row_size;
+        unsigned n_tau = this->RAW_DATA[ni].time_extent;
+        unsigned n_configs = rows / n_tau;
+        std::uniform_int_distribution<int> sampler(0, n_configs);
+        
+        // Slice the matrix
+        unsigned shape[2] = { n_configs, n_tau };
+        Matrix slice = this->reshape( this->RAW_DATA[ni], shape, 1 );
+
+        // Auxiliary variables
+        unsigned index, pick_nc, aux_t;
+
+        // Results matrix
+        double* cov_bootstrap = new double[nboot * area];
+
+        for ( unsigned nb = 0; nb < nboot; nb++ ) {
+
+            double* hold_resample = new double[n_configs * window];
+
+            for ( unsigned nc = 0; nc < n_configs; nc++ ) {
+                pick_nc = sampler(this->random_eng); 
+                aux_t = t_min[ni];
+
+                for ( unsigned nt = 0; nt < window; nt++ ) {
+                    index = pick_nc * n_tau + aux_t;
+                    hold_resample[nc * window + nt] = 
+                        slice.data[index];
+                    aux_t += 1;
+                }
+            }
+
+            // Now calculate the covariance and store it
+            Matrix resample = 
+                { hold_resample, n_configs, window, n_tau };
+            double* cov_sample = this->cov( resample );
+
+            // Feed the data inside the whole matrix
+            for ( unsigned nt = 0; nt < area; nt++ )
+                cov_bootstrap[nb * area + nt] = cov_sample[nt];
+        }
+
+        // Get the average on the covariance estimations
+        Matrix covariance = { cov_bootstrap, nboot, area, n_tau };
+        double* best_cov = this->avg( covariance );
+        double* best_tt = new double[window * window]{ 0.0 };
+
+        // Generate the T matrix as the diagonal of C
+        for ( unsigned i = 0; i < window * window; i++ ) {
+            best_tt[i * window + i ] = best_cov[i * window + i];
+        }
+
+        for ( unsigned i = 0; i < window; i++ ) {
+            for ( unsigned j = 0; j < window; j++ ) {
+                std::cout << best_cov[i * window + j ] << " ";
+            }
+            std::cout << std::endl;
+        }
+
+        // Save the data
+        this->cov_mat[ni] = { best_cov, window, window, n_tau };
+        this->tt_mat[ni] = { best_tt, window, window, n_tau };
+
+        // Free the space
+        delete[] slice.data;
+        delete[] cov_bootstrap;
+    }
+}
 

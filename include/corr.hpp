@@ -16,6 +16,8 @@ class Correlator {
         Matrix* central;
         Matrix* boots_central;
         Matrix* sig2noise;
+        Matrix* cov_mat;
+        Matrix* tt_mat;
 
         unsigned* t_max;
         unsigned* t_min;
@@ -31,9 +33,10 @@ class Correlator {
         void bootstrap_central( const unsigned = 200, 
             const unsigned = 1 );
         void sig_to_noise();
+        void cov_matrix( unsigned*, unsigned*, unsigned = 200 );
 
-        void get_tmax( double, double, bool = false );
-        void get_tmin( unsigned ); 
+        unsigned* get_tmax( double, double, bool = false );
+        unsigned* get_tmin( unsigned ); 
 
         // void covariance( const unsigned, const unsigned,
         //         const unsigned = 200 );
@@ -49,10 +52,11 @@ class Correlator {
 
         double* avg( Matrix );
         double* var( Matrix, double* );
+        double* cov( Matrix );
 
-        struct Matrix reshape( 
-            Matrix, const unsigned*, const unsigned = 1
-        );
+        Matrix reshape( Matrix, const unsigned*, const unsigned = 1 );
+        Matrix reduce( Matrix, const unsigned );
+        
 
         void free_matrix( Matrix* );
 
@@ -90,7 +94,6 @@ class Correlator {
         // // Variance of data
         // double* var( struct matrix, double* );
         // // Covariance of data
-        // double* cov( struct matrix );
 
         // struct matrix reshape( 
         //     struct matrix, const unsigned[2], const unsigned = 1 );

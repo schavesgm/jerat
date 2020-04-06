@@ -56,36 +56,33 @@ double* Correlator::var( Matrix data, double* average ) {
     return var_data;
 }
 
-// double* Corr::cov( struct matrix data ) {
-// 
-//     unsigned rows = data.row_size;
-//     unsigned cols = data.col_size;
-// 
-//     // Calculate the average of the sample
-//     double* avg = this->avg( data );
-//     double* cov = new double[cols * cols];
-//     
-//     // std::cout << "Covariance data" << std::endl;
-//     double aux_cov; 
-//     double value_first, value_sec;
-//     for ( unsigned t = 0; t < cols; t++ ) {
-//         for ( unsigned tp = 0; tp < cols; tp++ ) {
-//             aux_cov = 0.0;
-//             for ( unsigned nr = 0; nr < rows; nr++ ) {
-//                 value_first = ( data.data[nr * cols + t] - avg[t] );
-//                 value_sec = ( data.data[nr * cols + tp] - avg[t] );
-//                 aux_cov += value_first * value_sec;
-//             }
-//             cov[t * cols + tp] = aux_cov / rows;
-//         }
-//         // std::cout << std::endl;
-//     }
-//     // std::cout << cov[0] << " ";
-//     // std::cout << std::endl;
-//     return cov;
-// }
+double* Correlator::cov( Matrix data ) {
 
-struct Matrix Correlator::reshape( 
+    // Get the dimensions of the data
+    unsigned rows = data.row_size;
+    unsigned cols = data.col_size;
+
+    // Calculate the average of the sample
+    double* avg = this->avg( data );
+
+    double aux_cov, value_1, value_2;
+    double* cov = new double[cols * cols];
+
+    for ( unsigned t = 0; t < cols; t++ ) {
+        for ( unsigned tp = 0; tp < cols; tp++ ) {
+            aux_cov = 0.0;
+            for ( unsigned nr = 0; nr < rows; nr++ ) {
+                value_1 = ( data.data[nr * cols + t] - avg[t] );
+                value_2 = ( data.data[nr * cols + tp] - avg[tp] );
+                aux_cov += value_1 * value_2;
+            }
+            cov[t * cols + tp] = aux_cov / rows;
+        }
+    }
+    return cov;
+}
+
+Matrix Correlator::reshape( 
     Matrix data, const unsigned shape[2], const unsigned col) {
     /*
        Method to slice a matrix into a vector in a given column. 
@@ -106,4 +103,54 @@ struct Matrix Correlator::reshape(
     struct Matrix ret = \
         { hold, fin_rows, fin_cols, data.time_extent };
     return ret;
+}
+
+Matrix Correlator::reduce( Matrix data, const unsigned nf ) {
+    /*
+       Method to reduce the dimensionality of a Matrix structure.
+       The method reduces the initial row_size into nf by calculating
+       the average every chunk row_size / nf.
+    */
+    unsigned cols = data.col_size;
+    unsigned no = data.row_size;
+    unsigned n_tau = data.time_extent;
+
+    assert( no > nf );
+
+    unsigned num_chunks = no / nf;
+    unsigned beg, end, index, aux_start;
+
+    double* reduced_data = new double[nf * cols];
+
+    for ( unsigned nc = 0; nc < nf; nc++ ) {
+
+        double* data_chunk = new double[num_chunks * cols];
+
+        beg = num_chunks * nc;
+        end = num_chunks * ( nc + 1 );
+        aux_start = 0;
+
+        for ( unsigned ni = beg; ni < end; ni++ ) {
+            for ( unsigned nt = 0; nt < cols; nt++ ) {
+                index = ni * cols + nt;
+                data_chunk[aux_start] = data.data[index];
+                aux_start += 1;
+            }
+        }
+
+        Matrix chunk = {data_chunk, num_chunks, cols, n_tau};
+        double* avg = this->avg( chunk );
+
+        // Feed the average into the reduced data
+        for ( unsigned nt = 0; nt < cols; nt++ )
+            reduced_data[nc * cols + nt] = avg[nt];
+
+        // Free unwanted space
+        delete[] data_chunk;
+        delete[] avg;
+    }
+
+    // Generate the output data 
+    Matrix reduced = { reduced_data, nf, cols, n_tau };
+    return reduced;
 }
