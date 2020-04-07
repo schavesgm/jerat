@@ -26,16 +26,51 @@ int main() {
             time_extent };
     }
     Correlator corr( ins, num_files );
-    corr.bootstrap_central();
+    // corr.bootstrap_central();
 
-    for ( unsigned i = 0; i < time_extent; i++ ) {
-        std::cout << corr.boots_central[0].data[2 * i] <<
-            std::endl;
+    unsigned* tmin = new unsigned[num_files];
+    unsigned* tmax = new unsigned[num_files];
+    for ( unsigned i = 0; i < num_files; i++ ) {
+        tmin[i] = 0;
+        tmax[i] = 2;
     }
-    // std::cout << corr.boots_central[0].data[time_extent * 2 - 2] << " " <<
-    //     corr.boots_central[0].data[time_extent * 2 - 1] << std::endl;
-    // std::cout << corr.boots_central[1].data[time_extent * 2 - 2] << " " <<
-    //     corr.boots_central[1].data[time_extent * 2 - 1] << std::endl;
+
+    corr.cov_matrix( tmin, tmax, 1 );
+    std::cout << "----" << std::endl;
+    corr.cov_matrix( tmin, tmax, 100 );
+    // corr.cov_matrix( tmin, tmax, 100 );
+    // corr.cov_matrix( 0, 0, 0, 2, 1000 );
+    // corr.cov_matrix( 0, 0, 0, 2, 5000 );
+    // corr.bootstrap_central();
+    // corr.get_tmax( 1.0, 0.5 ); 
+    // std::cout << corr.t_max[0] << " " << corr.t_max[1] << std::endl;
+    // corr.get_tmax( 0.5, 0.5 ); 
+    // std::cout << corr.t_max[0] << " " << corr.t_max[1] << std::endl;
+    // corr.get_tmax( 0.1, 0.5 ); 
+    // std::cout << corr.t_max[0] << " " << corr.t_max[1] << std::endl;
+
+    // for ( unsigned i = 0; i < time_extent; i++ ) {
+    //     std::cout << corr.boots_central[0].data[2 * i] <<
+    //         std::endl;
+    // }
+    // std::cout << corr.boots_central[0].data[0] 
+    //     << " " << corr.boots_central[0].data[1] 
+    //     << std::endl;
+    // std::cout << corr.boots_central[1].data[0] 
+    //     << " " << corr.boots_central[1].data[1] 
+    //     << std::endl;
+    // std::cout << corr.boots_central[0].data[2] 
+    //     << " " << corr.boots_central[0].data[3] 
+    //     << std::endl;
+    // std::cout << corr.boots_central[1].data[2] 
+    //     << " " << corr.boots_central[1].data[3] 
+    //     << std::endl;
+    // std::cout << corr.boots_central[0].data[time_extent * 2 - 2] 
+    //     << " " << corr.boots_central[0].data[time_extent * 2 - 1] 
+    //     << std::endl;
+    // std::cout << corr.boots_central[1].data[time_extent * 2 - 2] 
+    //     << " " << corr.boots_central[1].data[time_extent * 2 - 1] 
+    //     << std::endl;
 
     // std::cout << corr.sig2noise[1].data[0] << " " <<
     //     corr.sig2noise[1].data[1] << " " << 

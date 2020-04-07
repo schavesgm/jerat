@@ -118,7 +118,7 @@ void Correlator::bootstrap_central( const unsigned nboot,
         unsigned n_configs = 2;
 
         // Generate the sampler
-        std::uniform_int_distribution<int> sampler(0, n_configs);
+        std::uniform_int_distribution<int> sampler(0, n_configs - 1);
 
         // Reshape the matrix
         unsigned shape[2] = { n_configs, n_tau };
@@ -236,10 +236,10 @@ void Correlator::cov_matrix( unsigned* t_min, unsigned* t_max,
         unsigned window = t_max[ni] - t_min[ni] + 1; 
         unsigned area = window * window;
         unsigned rows = this->RAW_DATA[ni].row_size;
-        unsigned cols = this->RAW_DATA[ni].row_size;
+        unsigned cols = this->RAW_DATA[ni].col_size;
         unsigned n_tau = this->RAW_DATA[ni].time_extent;
         unsigned n_configs = rows / n_tau;
-        std::uniform_int_distribution<int> sampler(0, n_configs);
+        std::uniform_int_distribution<int> sampler(0, n_configs - 1);
         
         // Slice the matrix
         unsigned shape[2] = { n_configs, n_tau };
@@ -249,15 +249,14 @@ void Correlator::cov_matrix( unsigned* t_min, unsigned* t_max,
         unsigned index, pick_nc, aux_t;
 
         // Results matrix
-        double* cov_bootstrap = new double[nboot * area];
+        double* cov_bootstrap = new double[nboot * area]{0.0};
+        double* hold_resample = new double[n_configs * window]{0.0};
 
         for ( unsigned nb = 0; nb < nboot; nb++ ) {
 
-            double* hold_resample = new double[n_configs * window];
-
             for ( unsigned nc = 0; nc < n_configs; nc++ ) {
-                pick_nc = sampler(this->random_eng); 
                 aux_t = t_min[ni];
+                pick_nc = sampler(this->random_eng); 
 
                 for ( unsigned nt = 0; nt < window; nt++ ) {
                     index = pick_nc * n_tau + aux_t;
@@ -287,18 +286,12 @@ void Correlator::cov_matrix( unsigned* t_min, unsigned* t_max,
             best_tt[i * window + i ] = best_cov[i * window + i];
         }
 
-        for ( unsigned i = 0; i < window; i++ ) {
-            for ( unsigned j = 0; j < window; j++ ) {
-                std::cout << best_cov[i * window + j ] << " ";
-            }
-            std::cout << std::endl;
-        }
-
         // Save the data
         this->cov_mat[ni] = { best_cov, window, window, n_tau };
         this->tt_mat[ni] = { best_tt, window, window, n_tau };
 
         // Free the space
+        delete[] hold_resample;
         delete[] slice.data;
         delete[] cov_bootstrap;
     }
