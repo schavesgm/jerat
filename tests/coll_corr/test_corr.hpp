@@ -67,37 +67,36 @@ TEST_CASE( "Correlation function class", "[Corr]" ) {
         REQUIRE( corr.boots_central[0].time_extent == time_extent );
         REQUIRE( corr.boots_central[1].time_extent == time_extent );
 
- 
+  
         // Check the first values
-         
         REQUIRE( corr.boots_central[0].data[0] == 
-                Approx( 3.82699 ).margin( 0.00001 ) );
+                Approx( 3.84431 ).margin( 0.00001 ) );
         REQUIRE( corr.boots_central[0].data[1] == 
-                Approx( 0.00117 ).margin( 0.0001 ) );
+                Approx( 0.00159 ).margin( 0.0001 ) );
         REQUIRE( corr.boots_central[1].data[0] == 
-                Approx( -3.5797 ).margin( 0.0001 ) );
+                Approx( -3.58932 ).margin( 0.0001 ) );
         REQUIRE( corr.boots_central[1].data[1] == 
-                Approx( 0.00043 ).margin( 0.0001 ) );
+                Approx( 0.00060 ).margin( 0.0001 ) );
 
         // Check the second values
         REQUIRE( corr.boots_central[0].data[2] == 
-                Approx( 0.739083 ).margin( 0.00001 ) );
+                Approx( 0.745041 ).margin( 0.00001 ) );
         REQUIRE( corr.boots_central[0].data[3] == 
-                Approx( 0.000175 ).margin( 0.0001 ) );
+                Approx( 0.000247 ).margin( 0.0001 ) );
         REQUIRE( corr.boots_central[1].data[2] == 
-                Approx( -0.62902 ).margin( 0.00001 ) );
+                Approx( -0.63389 ).margin( 0.00001 ) );
         REQUIRE( corr.boots_central[1].data[3] == 
-                Approx( 7.419e-05 ).margin( 0.0001 ) );
-
+                Approx( 9.61e-05 ).margin( 0.0001 ) );
+ 
         // Check the last values
         REQUIRE( corr.boots_central[0].data[time_extent * 2 - 2] == \
-                Approx( 0.71723 ).margin( 0.00001 ) );
+                Approx( 0.716315 ).margin( 0.00001 ) );
         REQUIRE( corr.boots_central[0].data[time_extent * 2 - 1] == \
-                Approx( 8.97537e-05 ).margin( 0.0001 ) );
+                Approx( 0.000113 ).margin( 0.0001 ) );
         REQUIRE( corr.boots_central[1].data[time_extent * 2 - 2] == \
-                Approx( -0.616186 ).margin( 0.00001 ) );
+                Approx( -0.61421 ).margin( 0.00001 ) );
         REQUIRE( corr.boots_central[1].data[time_extent * 2 - 1] == \
-                Approx( 2.81392e-05 ).margin( 0.0001 ) );
+                Approx( 2.47e-05 ).margin( 0.0001 ) );
     }
     SECTION( "Test central value -> Average and Variance" ) {
 
@@ -222,7 +221,7 @@ TEST_CASE( "Correlation function class", "[Corr]" ) {
         REQUIRE( cpy.t_min[1] == 23 );
         REQUIRE( tmin[1] == 23 );
     }
-    SECTION( "Test covariance matrix and tt matrix" ) {
+    SECTION( "Test covariance matrix and tt matrix" ) { 
 
         // Generate a Corr object
         Correlator corr( ins, num_files );
@@ -250,14 +249,18 @@ TEST_CASE( "Correlation function class", "[Corr]" ) {
             REQUIRE( corr.tt_mat[i].time_extent == time_extent );
         }
         
-        double first_A[3] = { 0.00557809, 0.00153316, 0.000654207 };
-        double first_B[3] = { 0.00487467, 0.000977171, 0.000363822 };
-
-        double secon_A[3] = { 0.00153316, 0.000543694, 0.000231497 };
-        double secon_B[3] = { 0.000977171, 0.00025876, 9.31834e-05 };
-
-        double third_A[3] = { 0.000654207, 0.00023149, 0.000131097 };
-        double third_B[3] = { 0.00036382, 9.31834e-05, 4.77836e-05 };
+        double first_A[3] = 
+            { 0.00538057, 0.00148388, 0.000635544 };
+        double secon_A[3] = 
+            { 0.00148388, 0.00054068, 0.00022819 };
+        double third_A[3] = 
+            { 0.000635544, 0.00022819, 0.000127608 };
+        double first_B[3] = 
+            { 0.00296726, 0.000644553, 0.000242457 };
+        double secon_B[3] = 
+            { 0.000644553, 0.000198165, 7.08122e-05 };
+        double third_B[3] = 
+            { 0.000242457, 7.08122e-05, 3.925e-05 };
 
         for ( unsigned i = 0; i < 3; i++ ) {
             REQUIRE( corr.cov_mat[0].data[i] == 
@@ -274,48 +277,53 @@ TEST_CASE( "Correlation function class", "[Corr]" ) {
                 Approx( third_B[i] ).margin( 0.0001 ) );
         }
 
-        // Generate a Corr object
-        // Generate the covariance matrix for 10 iterations
+        corr.cov_matrix( tmin, tmax, 100 );
 
-        // Check the dimensions
-        // for ( unsigned i = 0; i < num_files; i++ ) {
-        //     REQUIRE( corr.cov_mat[i].row_size == 3 );
-        //     REQUIRE( corr.cov_mat[i].col_size == 3 );
-        //     REQUIRE( corr.cov_mat[i].row_size == 
-        //             corr.tt_mat[i].row_size );
-        //     REQUIRE( corr.cov_mat[i].col_size == 
-        //             corr.tt_mat[i].col_size );
-        //     REQUIRE( corr.cov_mat[i].time_extent == time_extent );
-        //     REQUIRE( corr.tt_mat[i].time_extent == time_extent );
-        // }
-        // 
-        // double first_A[3] = { 0.00557809, 0.00153316, 0.000654207 };
-        // double first_B[3] = { 0.00487467, 0.000977171, 0.000363822 };
+        double first_C[3] = 
+            { 0.00527076, 0.00146277, 0.000634846 };
+        double secon_C[3] = 
+            { 0.00146277, 0.000528913, 0.000226571 };
+        double third_C[3] = 
+            { 0.000634846, 0.000226571, 0.000127844 };
+        double first_D[3] = 
+            { 0.00291279, 0.000633572, 0.000240051 };
+        double secon_D[3] = 
+            { 0.000633572, 0.00019481, 7.03125e-05 };
+        double third_D[3] = 
+            { 0.000240051, 7.03125e-05, 3.94724e-05 };
 
-        // double secon_A[3] = { 0.00153316, 0.000543694, 0.000231497 };
-        // double secon_B[3] = { 0.000977171, 0.00025876, 9.31834e-05 };
+        for ( unsigned i = 0; i < 3; i++ ) {
+            REQUIRE( corr.cov_mat[0].data[i] == 
+                Approx( first_C[i] ).margin( 0.0001 ) );
+            REQUIRE( corr.cov_mat[1].data[i] == 
+                Approx( first_D[i] ).margin( 0.0001 ) );
+            REQUIRE( corr.cov_mat[0].data[3 + i] == 
+                Approx( secon_C[i] ).margin( 0.0001 ) );
+            REQUIRE( corr.cov_mat[1].data[3 + i] == 
+                Approx( secon_D[i] ).margin( 0.0001 ) );
+            REQUIRE( corr.cov_mat[0].data[6 + i] == 
+                Approx( third_C[i] ).margin( 0.0001 ) );
+            REQUIRE( corr.cov_mat[1].data[6 + i] == 
+                Approx( third_D[i] ).margin( 0.0001 ) );
+        }
 
-        // double third_A[3] = { 0.000654207, 0.00023149, 0.000131097 };
-        // double third_B[3] = { 0.00036382, 9.31834e-05, 4.77836e-05 };
-
-        // for ( unsigned i = 0; i < 3; i++ ) {
-        //     REQUIRE( corr.cov_mat[0].data[i] == 
-        //         Approx( first_A[i] ).margin( 0.0001 ) );
-        //     REQUIRE( corr.cov_mat[1].data[i] == 
-        //         Approx( first_B[i] ).margin( 0.0001 ) );
-        //     REQUIRE( corr.cov_mat[0].data[3 + i] == 
-        //         Approx( secon_A[i] ).margin( 0.0001 ) );
-        //     REQUIRE( corr.cov_mat[1].data[3 + i] == 
-        //         Approx( secon_B[i] ).margin( 0.0001 ) );
-        //     REQUIRE( corr.cov_mat[0].data[6 + i] == 
-        //         Approx( third_A[i] ).margin( 0.0001 ) );
-        //     REQUIRE( corr.cov_mat[1].data[6 + i] == 
-        //         Approx( third_B[i] ).margin( 0.0001 ) );
-        // }
+        // Test the TT matrix as diagonal of covariance
+        for ( unsigned i = 0; i < 3; i++ ) {
+            REQUIRE( corr.cov_mat[0].data[i * 3 + i] ==
+                    corr.tt_mat[0].data[i * 3 + i] );
+            REQUIRE( corr.cov_mat[1].data[i * 3 + i] ==
+                    corr.tt_mat[1].data[i * 3 + i] );
+        }
+        // Check zeros
+        REQUIRE( corr.tt_mat[0].data[1] == corr.tt_mat[1].data[1] );
+        REQUIRE( corr.tt_mat[0].data[2] == corr.tt_mat[1].data[2] );
+        REQUIRE( corr.tt_mat[0].data[3] == corr.tt_mat[1].data[3] );
+        REQUIRE( corr.tt_mat[0].data[5] == corr.tt_mat[1].data[5] );
+        REQUIRE( corr.tt_mat[0].data[6] == corr.tt_mat[1].data[6] );
+        REQUIRE( corr.tt_mat[0].data[7] == corr.tt_mat[1].data[7] );
 
         delete[] tmin;
         delete[] tmax;
-
     }
 }
 #endif
