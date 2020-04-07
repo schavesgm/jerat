@@ -54,3 +54,51 @@ struct Matrix load_data( Input input, std::string comm_char ) {
     struct Matrix data = { store, row_size, col_size, time_extent };
     return data;
 }
+
+std::vector<std::string> 
+    get_key( std::string input_file, std::string key ) {
+    /* 
+       Function to load input data from a file based on a key
+    */
+
+    std::ifstream input(input_file);
+    std::string line;
+    std::vector<std::string> key_vals;
+
+    while( std::getline( input, line ) ) {
+
+        // Input object
+        std::istringstream ss(line);
+
+        // Placing tokens inside vector
+        std::istream_iterator<std::string> begin(ss), end;
+        std::vector<std::string> tokens( begin, end );
+
+        if ( tokens[0] == key ) {
+            tokens.erase( tokens.begin() );
+            key_vals = tokens;
+        }
+        tokens.clear();
+    }
+    input.close();
+
+    return key_vals;
+}
+
+std::vector<double> to_double( std::vector<std::string> values ) {
+    /* Transform string to doubles */
+    std::vector<double> copy( values.size() );
+    std::transform( values.begin(), values.end(), copy.begin(),
+        []( const std::string& val ) { return std::stod(val); } );
+    return copy;
+}
+
+std::vector<unsigned> to_unsigned( 
+        std::vector<std::string> values ) {
+
+    /* Transform string to unsigned */
+    std::vector<unsigned> copy( values.size() );
+    std::transform( values.begin(), values.end(), copy.begin(),
+        []( const std::string& val ) { return std::stoul(val); } );
+    return copy;
+}
