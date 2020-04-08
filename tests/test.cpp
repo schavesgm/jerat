@@ -4,6 +4,7 @@
 
 // Include the test files
 #include "test_io.hpp"
+#include "test_fit.hpp"
 #include "test_corr.hpp"
 
 // TEST_CASE( "Testing IO", "[IO]" ) {
