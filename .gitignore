@@ -1,5 +1,6 @@
 fit_code
 Gen2l_48x32.meson.g5.cc
+Gen2l_48x32.meson.vec.cc
 objs
 prog
 exec_tests
