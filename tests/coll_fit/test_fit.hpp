@@ -227,7 +227,7 @@ TEST_CASE( "Testing Fit", "[Fit]" ) {
         std::vector<double> f_params( true_params.size() );
         for ( unsigned i = 0; i < true_params.size(); i++ ) {
             f_params[i] = true_params[i] + \
-                true_params[i] * sampler(r_eng); 
+                true_params[i] * sampler(r_eng);
         }
 
         // Create the fake data with added noise
