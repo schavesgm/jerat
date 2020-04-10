@@ -28,7 +28,7 @@ double chi_square( func f, std::vector<double> params, Matrix data ) {
 
 std::vector<double> fitNM( func f, Matrix data, 
     std::vector<double> start_guess, std::vector<double> expl_vol,
-    const unsigned max_iter ) {
+    const unsigned max_iter, const unsigned seed ) {
 
     // Define the constants of the algorithm
     double alpha = 1.0;
@@ -40,11 +40,8 @@ std::vector<double> fitNM( func f, Matrix data,
     unsigned dim_param = start_guess.size();
     unsigned dim_simp = start_guess.size() + 1;
     double non_improvement_thresh = 1e-8;
-    unsigned non_improvement_maxiters = 100;
+    unsigned non_improvement_maxiters = 500;
     double thresh_zero = 1e-3;  // Avoid zero values at start
-
-    // Values to save the data
-    double min_value; 
 
     // Allocate memory for needed vectors
     std::vector<double> centroid( dim_param );
@@ -61,9 +58,6 @@ std::vector<double> fitNM( func f, Matrix data,
     std::vector<double> cont_point( dim_param );
     double image_cont;
 
-    // Reductino
-    std::vector<double> redu_point( dim_param );
-
     // Allocate memory for the simplex
     std::vector<double> simplex( dim_param * dim_simp );
     std::vector<double> min_points( dim_param );
@@ -76,9 +70,8 @@ std::vector<double> fitNM( func f, Matrix data,
 
     // Generate the random engine and sampler
     std::mt19937 rand_eng;
-    rand_eng.seed( 123 );
+    rand_eng.seed( seed );
     std::uniform_real_distribution<double> dist(-1,1);
-
 
     // Generate the initial simplex using the values given
     for ( unsigned i = 0; i < dim_simp; i++ ) {
@@ -96,12 +89,14 @@ std::vector<double> fitNM( func f, Matrix data,
         }
     }
 
-    double prev_min, curr_min;
     unsigned iter_noimprov = 0;
     unsigned iter_step = 0;
 
+    double prev_min, curr_min;
+
     // Start the algorithm
     while ( true ) {
+
 
         // Calculate the image of the simplex
         for ( unsigned i = 0; i < dim_simp; i++ ) {
@@ -111,115 +106,127 @@ std::vector<double> fitNM( func f, Matrix data,
             images_s[i] = chi_square( f, slice, data );
         }
 
-        // Order the simplex according to their images
+        // Order the simplex according to the images
+        curr_min = images_s[0];
         order_simplex( simplex, images_s );
         prev_min = images_s[0];
-        std::cout << simplex[0] << " " << simplex[1] << std::endl;
+
+        // for ( unsigned i = 0; i < dim_simp; i++ )
+        //     std::cout << images_s[i] << " ";
+        // std::cout << std::endl;
 
         // Control the status of the algorithm
-        if ( iter_step >= max_iter ) {
+        if ( iter_step > max_iter ) {
             min_points.assign( 
                 simplex.begin(), simplex.begin() + dim_param );
+            min_points.push_back( images_s[0] );
             break;
         }
-        
-        if ( curr_min < prev_min - non_improvement_thresh ) {
-            iter_noimprov = 0;
-            curr_min = prev_min;
-        } else {
+
+        // Keep track of non-improvement iterations
+        if ( abs( prev_min - curr_min ) < non_improvement_thresh ) {
             iter_noimprov += 1;
+        } else {
+            iter_noimprov = 0;
         }
 
         if ( iter_noimprov >= non_improvement_maxiters ) {
             min_points.assign( 
                 simplex.begin(), simplex.begin() + dim_param );
+            min_points.push_back( images_s[0] );
             break;
         }
         iter_step += 1;
 
-        // Calculate the centroid of the minimum 'dim_param' points
-        std::vector<double> slice( 
-            simplex.begin(),
-            simplex.begin() + \
-                ( dim_simp - 1 ) * dim_param + dim_param
-        );
-        centroid = get_centroid( slice );
-        slice.clear();
+        // Calculate the centroid of the simplex
+        centroid = get_centroid( simplex, dim_param );
 
-        // Reflection part r[i] = c[i] + a * ( c[i] - s_worse[i] 
-        for ( unsigned i = 0; i < dim_simp; i++ ) {
+        // Reflection part r[i] = c[i] + a * ( c[i] - s_wrs[i] 
+        for ( unsigned i = 0; i < dim_param; i++ ) {
             refl_point[i] = centroid[i] + alpha * \
-                ( centroid[i] - simplex[dim_param * dim_param + i] );
+                ( centroid[i] - \
+                    simplex[(dim_simp - 1) * dim_param + i] );
         }
         image_refl = chi_square( f, refl_point, data );
 
         if ( images_s[0] <= image_refl && \
-            image_refl < images_s[dim_param-1] ) {
-            for ( unsigned i = 0; i < dim_param; i++ ) 
-                simplex[(dim_simp-1) * dim_param + i] = refl_point[i];
+            image_refl < images_s[dim_simp-1] ) {
+            // Replace the worst point with the reflection
+            for ( unsigned i = 0; i < dim_param; i++ ) {
+                simplex[(dim_simp-1) * dim_param + i] = \
+                    refl_point[i];
+            }
             continue;
-        }
-
-        // Expansion part e[i] = c[i] + g * ( r[i] - c[i] )
-        if ( image_refl < images_s[0] ) {
-            for ( unsigned i = 0; i < dim_simp; i++ ) {
+        } else if ( image_refl < images_s[0] ) {
+            // Expasion part e[i] = c[i] + g * ( r[i] - c[i] )
+            for ( unsigned i = 0; i < dim_param; i++ ) {
                 expa_point[i] = centroid[i] + gamma * \
                     ( refl_point[i] - centroid[i] );
             }
             image_expa = chi_square( f, expa_point, data );
 
             if ( image_expa < image_refl ) {
+                // Replace the worst point with the expansion
                 for ( unsigned i = 0; i < dim_param; i++ ) {
                     simplex[(dim_simp-1) * dim_param + i] = \
                         expa_point[i];
                 }
                 continue;
             } else {
+                // Replace the worst point with the reflection
                 for ( unsigned i = 0; i < dim_param; i++ ) {
                     simplex[(dim_simp-1) * dim_param + i] = \
                         refl_point[i];
                 }
                 continue;
             }
-        }
-
-        // Contraction part C[i] = c[i] + r * ( s_worse[i] - c[i] )
-        for( unsigned i = 0; i < dim_param; i++ ) {
-            cont_point[i] = centroid[i] + rho * \
-                ( simplex[dim_param * dim_param + i] - centroid[i] );
-        }
-        image_cont = chi_square( f, cont_point, data );
-
-        if ( image_cont < images_s[dim_simp-1] ) {
+        } else {
+            // Contraction part x[i] = c[i] + r * ( s_wrs[i] - c[i] )
             for ( unsigned i = 0; i < dim_param; i++ ) {
-                simplex[(dim_simp-1) * dim_param + i] = \
-                    cont_point[i];
+                cont_point[i] = centroid[i] + rho * \
+                    ( simplex[(dim_simp-1) * dim_param + i] -
+                    centroid[i] );
             }
-            continue;
+            image_cont = chi_square( f, cont_point, data );
+            if ( image_cont < images_s[dim_simp] ) {
+                // Replace the worst point with the expansion
+                for ( unsigned i = 0; i < dim_param; i++ ) {
+                    simplex[(dim_simp-1) * dim_param + i] = \
+                        cont_point[i];
+                }
+                continue;
+            }
         }
 
-        // Shrinking part
+        // Shrink the simplex
         for ( unsigned i = 1; i < dim_simp; i++ ) {
             for ( unsigned j = 0; j < dim_param; j++ ) {
                 simplex[i * dim_param + j] = simplex[j] + sigma * \
                     ( simplex[i * dim_param + j] - simplex[j] );
             }
         }
+        
     }
-    // Free the data at the end
+
+    // Free the vectors
+    centroid.clear();
+    refl_point.clear();
+    expa_point.clear();
+    cont_point.clear();
+    simplex.clear();
 
     return min_points;
 }
 
-std::vector<double> get_centroid(  std::vector<double> best_n ) {
+std::vector<double> get_centroid( 
+        std::vector<double> simplex, unsigned dim_param ) {
 
-    unsigned dim_param = std::sqrt( best_n.size() );
     std::vector<double> centroid( dim_param );
 
     for ( unsigned i = 0; i < dim_param; i++ ) {
         centroid[i] = 0.0;
         for ( unsigned j = 0; j < dim_param; j++ ) {
-            centroid[i] += best_n[j * dim_param + i];
+            centroid[i] += simplex[j * dim_param + i];
         }
         centroid[i] = centroid[i] / dim_param;
     }

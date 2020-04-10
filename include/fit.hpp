@@ -15,9 +15,9 @@ typedef double (*func)( std::vector<double>, double );
 double chi_square( func, std::vector<double>, Matrix );
 std::vector<double> 
     fitNM( func, Matrix, std::vector<double>, std::vector<double>,
-        const unsigned = 1e8 );
+        const unsigned = 1000, const unsigned = 123456 );
 
 void order_simplex( std::vector<double>&, std::vector<double>& );
-std::vector<double> get_centroid( std::vector<double> );
+std::vector<double> get_centroid( std::vector<double>, unsigned );
 
 #endif
