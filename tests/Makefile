@@ -10,27 +10,27 @@ INCL = -I $(SOURCE_CODE)/include
 
 COLS = catch coll_IO coll_fit coll_corr
 $(PROG): io_files fit utils corr_basics corr_tree
-	$(CXX) $(CXFLAGS) -o $@ test.cpp objs/*.o \
+	@$(CXX) $(CXFLAGS) -o $@ test.cpp objs/*.o \
 	    $(foreach col,$(COLS), -I $(col)) $(INCL)
 
 corr_tree: objs corr_basics
-	$(CXX) $(CXFLAGS) -o $</$@.o \
+	@$(CXX) $(CXFLAGS) -o $</$@.o \
 	    -c $(SOURCE_CODE)/lib/corr/$@.cpp $(INCL)
 
 corr_basics: objs utils
-	$(CXX) $(CXFLAGS) -o $</$@.o \
+	@$(CXX) $(CXFLAGS) -o $</$@.o \
 	    -c $(SOURCE_CODE)/lib/corr/$@.cpp $(INCL)
 
 utils: objs fit
-	$(CXX) $(CXFLAGS) -o $</$@.o \
+	@$(CXX) $(CXFLAGS) -o $</$@.o \
 	    -c $(SOURCE_CODE)/lib/corr/$@.cpp $(INCL)
 
 fit: objs io_files
-	$(CXX) $(CXFLAGS) -o $</$@.o \
+	@$(CXX) $(CXFLAGS) -o $</$@.o \
 	    -c $(SOURCE_CODE)/lib/$@.cpp $(INCL)
 
 io_files: objs
-	$(CXX) -o $</$@.o -c $(SOURCE_CODE)/lib/$@.cpp $(INCL)
+	@$(CXX) -o $</$@.o -c $(SOURCE_CODE)/lib/$@.cpp $(INCL)
 
 objs:
-	$(shell mkdir -p $@)
+	@$(shell mkdir -p $@)
