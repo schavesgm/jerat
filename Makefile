@@ -9,6 +9,10 @@ INC := $(ROOT)/include
 
 OBJS = main io_files fit #$(CORRS)
 
+all: $(LINK_TARGET) 
+	$(info Copied git pre-commit hook) \
+	$(shell cp ./hooks/pre-commit .git/hooks )
+
 $(LINK_TARGET): objs $(OBJS)
 	$(CXX) $(CXFLAGS) -o $@ $</*.o -I $(INC)
 
@@ -23,6 +27,7 @@ io_files: objs
 
 objs:
 	$(shell mkdir -p objs)
+
 # $(LINK_TARGET): objs main $(CORRS)
 # 	$(CXX) $(CXFLAGS) -o $@ $(foreach obj,$(OBJS), $</$(obj).o ) \
 # 	    -I $(INC)
