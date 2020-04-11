@@ -7,7 +7,7 @@ ROOT := $(shell pwd)
 LIB := $(ROOT)/lib
 INC := $(ROOT)/include
 
-OBJS = main io_files fit #$(CORRS)
+OBJS = main io_files fit utils basics
 
 all: $(LINK_TARGET) 
 	$(info Copied git pre-commit hook) \
@@ -16,10 +16,17 @@ all: $(LINK_TARGET)
 $(LINK_TARGET): objs $(OBJS)
 	$(CXX) $(CXFLAGS) -o $@ $</*.o -I $(INC)
 
-main: objs io_files
+main: objs
 	$(CXX) $(CXFLAGS) -o $</$@.o -c $@.cpp -I $(INC)
 
-fit: objs io_files
+basics: objs
+	$(CXX) $(CXFLAGS) -o $</corr_$@.o -c lib/corr/corr_$@.cpp \
+	    -I $(INC)
+
+utils: objs
+	$(CXX) $(CXFLAGS) -o $</corr_$@.o -c lib/corr/$@.cpp -I $(INC)
+
+fit: objs
 	$(CXX) $(CXFLAGS) -o $</$@.o -c lib/$@.cpp -I $(INC)
 
 io_files: objs

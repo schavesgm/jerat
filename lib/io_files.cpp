@@ -74,6 +74,9 @@ std::vector<std::string>
         std::istream_iterator<std::string> begin(ss), end;
         std::vector<std::string> tokens( begin, end );
 
+        // Ignore empty lines 
+        if ( tokens.empty() ) continue;
+
         if ( tokens[0] == key ) {
             tokens.erase( tokens.begin() );
             key_vals = tokens;

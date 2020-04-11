@@ -1,16 +1,11 @@
 #include <iostream>
 #include <random>
+#include <type_traits>
 
 // Load headers 
 #include "corr.hpp"
 #include <math.h>
 #include "fit.hpp"
-
-// double f( std::vector<double> params, double x ) {
-//     return params[0] * std::exp( - params[1] * x ) + \
-//         std::cos( params[2] * x ) + \
-//         std::sin( params[3] * x );
-// }
 
 double f( std::vector<double> params, double x ) {
     return params[0] * std::exp( - params[1] * x ) + \
@@ -19,42 +14,75 @@ double f( std::vector<double> params, double x ) {
 
 int main() {
 
-    // True parameters
-    std::vector<double> true_params = { 1, 0.25, 1, 0.25 };
-    unsigned num_points = 48;
+    // Read data from input file
+    std::string input_f = "input.in";
 
-    // Random engine
-    std::mt19937 r_eng;
-    r_eng.seed( 24680  );
-    std::uniform_real_distribution<double> sampler( -1, 1 );
+    std::vector<std::string> file_const = \
+        get_key( input_f, "file_const" );
 
-    // Generate fake parameters
-    std::vector<double> f_params( true_params.size() );
-    for ( unsigned i = 0; i < true_params.size(); i++ ) {
-        f_params[i] = true_params[i] + \
-            true_params[i] * sampler(r_eng); 
+    std::vector<std::string> n_tau = \
+        get_key( input_f, "n_tau" );
+
+    std::vector<std::string> n_space = \
+        get_key( input_f, "n_space" );
+    
+    std::vector<std::string> str_rows = \
+        get_key( input_f, "rows" );
+
+    std::vector<std::string> str_cols = \
+        get_key( input_f, "cols" );
+
+    std::vector<std::string> str_boots = \
+        get_key( input_f, "n_boot" );
+
+    std::vector<std::string> files;
+    std::string f_name;
+    for ( unsigned nt = 0; nt < n_tau.size(); nt++ ) {
+        f_name = file_const[0] + n_tau[nt] + "x" + n_space[0] + \
+            file_const[1];
+        files.push_back( f_name );
+        std::cout << f_name << std::endl;
     }
 
-    // Create the fake data with added noise
-    double* vals = new double[num_points * 2];
-    for( unsigned i = 0; i < num_points; i++ ) {
-        vals[i * 2] = i;
-        vals[i * 2 + 1] = f( true_params, i ) + \
-            0.01 * sampler(r_eng);
+    // Generate correlator data 
+    unsigned num_files = files.size();
+    Input ins[num_files];
+
+    unsigned u_row, u_col, u_ntau;
+    unsigned long aux_row, aux_col, aux_ntau;
+    for ( unsigned nf = 0; nf < files.size(); nf++ ) {
+        aux_row = std::stoul( str_rows[nf] );
+        aux_col = std::stoul( str_cols[0] );
+        aux_ntau = std::stoul( n_tau[nf] );
+        u_row = 
+            static_cast<std::make_unsigned<decltype(aux_row)>::type>
+            (aux_row);
+        u_col = 
+            static_cast<std::make_unsigned<decltype(aux_col)>::type>
+            (aux_col);
+        u_ntau = 
+            static_cast<std::make_unsigned<decltype(aux_ntau)>::type>
+            (aux_ntau);
+        ins[nf] = { files[nf].c_str(), u_row, u_col, u_ntau };
     }
-    Matrix data = { vals, num_points, 2, 1 };
 
-    // Fit the data
-    std::vector<double> fit = fitNM( f, data, f_params, f_params );
+    // Generate the object
+    Correlator corr_data( ins, num_files, 123123 );
 
-    for ( unsigned i = 0; i < fit.size() - 1; i++ ) 
-        std::cout << fit[i] << " ";
-    std::cout << std::endl;
-    std::cout << "Chi square: " << fit[fit.size()-1] << std::endl;
+    // Generate a bootstrap estimation
+    unsigned long aux_boots = std::stoul( str_boots[0] );
+    unsigned n_boots = 
+        static_cast<std::make_unsigned<decltype(aux_boots)>::type>
+        (aux_boots);
 
-    // true_params.clear();
-    // f_params.clear();
-    // delete[] data.data;
+    // Calculate the bootstrap iteration
+    corr_data.bootstrap_central( n_boots );
+
+    // Free vector data
+    file_const.clear();
+    n_tau.clear();
+    n_space.clear();
+    files.clear();
 
 return 0;
 }
