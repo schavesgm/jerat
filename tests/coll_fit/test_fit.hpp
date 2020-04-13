@@ -60,8 +60,8 @@ TEST_CASE( "Testing Fit", "[Fit]" ) {
         double chi_3 = chi_square( f_1, params, data_3 );
 
         REQUIRE( chi_1 == Approx( 0.0 ).margin( 0.01 ) );
-        REQUIRE( chi_2 == Approx( 0.01 ).margin( 0.001 ) );
-        REQUIRE( chi_3 == Approx( 0.0001 ).margin( 0.00001 ) );
+        REQUIRE( chi_2 == Approx( 0.0125 ).margin( 0.001 ) );
+        REQUIRE( chi_3 == Approx( 0.000125 ).margin( 0.00001 ) );
 
 
         delete[] data_1.data;

@@ -73,6 +73,89 @@ TEST_CASE( "Testing IO", "[IO]" ) {
         res_doubles.clear();
         res_unsigned.clear();
     }
+    SECTION( "Testing flushing Matrix to file" ) {
+
+        // File to save the data
+        std::string file_out = "./coll_IO/out_matrix.dat";
+
+        // Generate the fake data
+        unsigned num_data = 4;
+        double* data_xy = new double[num_data * 2];
+        for ( unsigned i = 0; i < num_data; i++ ) {
+            data_xy[i * 2] = i;
+            data_xy[i * 2 + 1] = 2 * i;
+        }
+
+        // Generate the Matrix to flush out
+        Matrix data = { data_xy, num_data, 2, 10 };
+
+        write_matrix( file_out, data );
+
+        // Load the data to check it works
+        Input input_matrix = { file_out, num_data, 3, 10 };
+        Matrix load_matrix = load_data( input_matrix );
+
+        // Check dimensions
+        REQUIRE( load_matrix.row_size == num_data );
+        REQUIRE( load_matrix.col_size == 3 );
+
+        unsigned cols = load_matrix.col_size;
+        for ( unsigned i = 0; i < num_data; i++ ) {
+            REQUIRE( load_matrix.data[i * cols] == i );
+            for ( unsigned j = 0; j < 2; j++ ) {
+                REQUIRE( load_matrix.data[i * cols + 1 + j] ==
+                    data.data[i * 2 + j] );
+            }
+        }
+
+        // Free the pointers
+        delete[] data.data;
+        delete[] load_matrix.data;
+    }
+    SECTION( "Testing flushing Vector to file" ) {
+
+        // File to save the data
+        std::string file_out = "./coll_IO/out_vector.dat";
+
+        // Generate the fake data
+        unsigned num_data = 4;
+
+        std::vector<double> fits( num_data * 2 );
+        std::vector<double> chi_sq( num_data * 2 );
+
+        for ( unsigned i = 0; i < num_data; i++ ) {
+            fits[i * 2] = 2 * i;
+            fits[i * 2 + 1] = 3 * i;
+            chi_sq[i * 2] = 50 + i;
+            chi_sq[i * 2 + 1] = 100 + i;
+        }
+
+        write_vector( file_out, fits, chi_sq, 2 );
+
+        // Load the data to check it works
+        Input input_matrix = { file_out, num_data, 5, 10 };
+        Matrix load_matrix = load_data( input_matrix );
+
+        // Check dimensions
+        REQUIRE( load_matrix.row_size == num_data );
+        REQUIRE( load_matrix.col_size == 5 );
+
+        unsigned cols = load_matrix.col_size;
+        for ( unsigned i = 0; i < num_data; i++ ) {
+            REQUIRE( load_matrix.data[i * cols] == i + 2 );
+            for ( unsigned j = 0; j < 2; j++ ) {
+                // Check fit values
+                REQUIRE( load_matrix.data[i * cols + 1 + j] ==
+                    fits[ i* 2 + j] );
+                // Check chi_square values
+                REQUIRE( load_matrix.data[i * cols + 3 + j] ==
+                    chi_sq[ i* 2 + j] );
+            }
+        }
+
+        fits.clear();
+        chi_sq.clear();
+    }
 }
 
 #endif
