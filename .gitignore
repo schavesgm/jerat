@@ -7,3 +7,4 @@ check.py
 full_tests
 out_*.dat
 results
+lib/corr
