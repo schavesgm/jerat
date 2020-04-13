@@ -1,7 +1,9 @@
 fit_code
-Gen2l_48x32.meson.g5.cc
-Gen2l_48x32.meson.vec.cc
+Gen2l_*
 objs
 prog
 exec_tests
 check.py
+full_tests
+out_*.dat
+results

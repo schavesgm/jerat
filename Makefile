@@ -11,7 +11,8 @@ OBJS = main io_files fit utils basics
 
 all: $(LINK_TARGET) 
 	$(info Copied git pre-commit hook) \
-	$(shell cp ./hooks/pre-commit .git/hooks )
+	$(shell cp ./hooks/pre-commit .git/hooks ) \
+	$(shell rm -rf objs)
 
 $(LINK_TARGET): objs $(OBJS)
 	$(CXX) $(CXFLAGS) -o $@ $</*.o -I $(INC)
@@ -20,11 +21,11 @@ main: objs
 	$(CXX) $(CXFLAGS) -o $</$@.o -c $@.cpp -I $(INC)
 
 basics: objs
-	$(CXX) $(CXFLAGS) -o $</corr_$@.o -c lib/corr/corr_$@.cpp \
+	$(CXX) $(CXFLAGS) -o $</corr_$@.o -c lib/corr_$@.cpp \
 	    -I $(INC)
-
 utils: objs
-	$(CXX) $(CXFLAGS) -o $</corr_$@.o -c lib/corr/$@.cpp -I $(INC)
+	$(CXX) $(CXFLAGS) -o $</corr_$@.o -c lib/corr_$@.cpp \
+	    -I $(INC)
 
 fit: objs
 	$(CXX) $(CXFLAGS) -o $</$@.o -c lib/$@.cpp -I $(INC)

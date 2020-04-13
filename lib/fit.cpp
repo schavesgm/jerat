@@ -1,5 +1,6 @@
 #include "fit.hpp"
 
+/* --------------------------------------------------------------- */
 double chi_square( func f, std::vector<double> params, Matrix data ) {
 
     try {
@@ -11,7 +12,6 @@ double chi_square( func f, std::vector<double> params, Matrix data ) {
             << std::endl;
     }
 
-    // assert( std::is_same<double, f(params, 0.0)>::value == true );
     unsigned rows = data.row_size;
     unsigned cols = data.col_size;
 
@@ -23,9 +23,10 @@ double chi_square( func f, std::vector<double> params, Matrix data ) {
             data.data[i * cols + 1]; 
         chi_sq += std::pow( aux, 2 );
     }
-    return chi_sq / rows;
+    return chi_sq / ( rows - params.size() );
 }
 
+/* --------------------------------------------------------------- */
 std::vector<double> fitNM( func f, Matrix data, 
     std::vector<double> start_guess, std::vector<double> expl_vol,
     const unsigned max_iter, const unsigned seed ) {
@@ -39,8 +40,8 @@ std::vector<double> fitNM( func f, Matrix data,
     // Declare constant of the problem
     unsigned dim_param = start_guess.size();
     unsigned dim_simp = start_guess.size() + 1;
-    double non_improvement_thresh = 1e-8;
-    unsigned non_improvement_maxiters = 500;
+    double non_improvement_thresh = 1e-10;
+    unsigned non_improvement_maxiters = 100;
     double thresh_zero = 1e-3;  // Avoid zero values at start
 
     // Allocate memory for needed vectors
@@ -79,8 +80,7 @@ std::vector<double> fitNM( func f, Matrix data,
             for ( unsigned j = 0; j < dim_param; j++ ) {
                 simplex[i * dim_param + j] = start_guess[j];
             }
-        }
-        else {
+        } else {
             for ( unsigned j = 0; j < dim_param; j++ ) {
                 double rand = dist(rand_eng);
                 simplex[i * dim_param + j] = start_guess[j] + \
@@ -110,10 +110,6 @@ std::vector<double> fitNM( func f, Matrix data,
         curr_min = images_s[0];
         order_simplex( simplex, images_s );
         prev_min = images_s[0];
-
-        // for ( unsigned i = 0; i < dim_simp; i++ )
-        //     std::cout << images_s[i] << " ";
-        // std::cout << std::endl;
 
         // Control the status of the algorithm
         if ( iter_step > max_iter ) {
@@ -218,21 +214,7 @@ std::vector<double> fitNM( func f, Matrix data,
     return min_points;
 }
 
-std::vector<double> get_centroid( 
-        std::vector<double> simplex, unsigned dim_param ) {
-
-    std::vector<double> centroid( dim_param );
-
-    for ( unsigned i = 0; i < dim_param; i++ ) {
-        centroid[i] = 0.0;
-        for ( unsigned j = 0; j < dim_param; j++ ) {
-            centroid[i] += simplex[j * dim_param + i];
-        }
-        centroid[i] = centroid[i] / dim_param;
-    }
-    return centroid;
-}
-
+/* --------------------------------------------------------------- */
 void order_simplex( std::vector<double> &simplex, 
         std::vector<double> &image_s ) {
 
@@ -276,4 +258,74 @@ void order_simplex( std::vector<double> &simplex,
     // Free memory
     delete[] index_order;
     aux_simplex.clear();
+}
+
+/* --------------------------------------------------------------- */
+std::vector<double> get_centroid( 
+        std::vector<double> simplex, unsigned dim_param ) {
+
+    std::vector<double> centroid( dim_param );
+
+    for ( unsigned i = 0; i < dim_param; i++ ) {
+        centroid[i] = 0.0;
+        for ( unsigned j = 0; j < dim_param; j++ ) {
+            centroid[i] += simplex[j * dim_param + i];
+        }
+        centroid[i] = centroid[i] / dim_param;
+    }
+    return centroid;
+}
+
+/* --------------------------------------------------------------- */
+Matrix select_window( Matrix data, unsigned t_beg ) {
+
+    // Generate the initial and final values of the window
+    unsigned t_end = data.time_extent - t_beg;
+    unsigned window = t_end - t_beg;
+
+    double* window_data = new double[window * 2];
+    for ( unsigned i = 0; i < window; i++ ) {
+        window_data[i * 2] = data.data[(i + t_beg) * 2];
+        window_data[i * 2 + 1] = data.data[(i + t_beg) * 2 + 1];
+    }
+
+    Matrix slice_window = \
+        { window_data, window, 2, data.time_extent };
+
+    return slice_window;
+}
+
+/* --------------------------------------------------------------- */
+std::vector<double> avg_stde( std::vector<double> data, 
+        unsigned  n_fits ) {
+
+    // Dimensions of the data unrolled
+    unsigned rows = n_fits;
+    unsigned cols = data.size() / rows;
+
+    std::vector<double> res_avg_std( 2 * cols );
+
+    // Calculate the average on the data by column
+    double aux_avg;
+    for ( unsigned nc = 0; nc < cols; nc++ ) {
+        aux_avg = 0.0;
+        for ( unsigned nr = 0; nr < rows; nr++ ) {
+            aux_avg += data[nr * cols + nc];
+        }
+        res_avg_std[nc * 2] = aux_avg / rows;
+    }
+
+    // Calculate the standard deviation on the data by column
+    double aux_std, value;
+    for ( unsigned nc = 0; nc < cols; nc++ ) {
+        aux_std = 0.0;
+        for ( unsigned nr = 0; nr < rows; nr++ ) {
+            value = data[nr * cols + nc] - res_avg_std[nc * 2];
+            aux_std += value * value;
+        }
+        res_avg_std[nc * 2 + 1] = \
+            std::sqrt( aux_std / ( rows - 1 ) );
+    }
+
+    return res_avg_std;
 }

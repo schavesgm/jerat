@@ -105,3 +105,46 @@ std::vector<unsigned> to_unsigned(
         []( const std::string& val ) { return std::stoul(val); } );
     return copy;
 }
+
+void write_matrix( std::string name_out, Matrix data ) {
+
+    std::ofstream buff_out;
+
+    buff_out.open( name_out.c_str() );
+    buff_out << "# nt corr Ecorr" << std::endl;
+
+    for ( unsigned nt = 0; nt < data.row_size; nt++ ) {
+        buff_out << nt << " ";
+        for ( unsigned nc = 0; nc < data.col_size; nc++ ) {
+            buff_out << data.data[nt * data.col_size + nc] << " ";
+        }
+        buff_out << std::endl;
+    }
+
+    buff_out.close();
+}
+
+void write_vector( std::string name_out, std::vector<double> fits, 
+        std::vector<double> chisq, unsigned t_init ) {
+
+    // In chi_sq there are rows x 2 values (value + error)
+    unsigned rows = chisq.size() / 2;
+    unsigned cols = fits.size() / rows;
+
+    std::ofstream buff_out;
+
+    buff_out.open( name_out.c_str() );
+    buff_out << "# Window " << cols << "x( Fit + eFit) " << 
+        "Chisq + eChisq" << std::endl;
+
+    for ( unsigned nr = 0; nr < rows; nr++ ) {
+        buff_out << t_init + nr << " ";
+        for ( unsigned nc = 0; nc < cols; nc++ ) {
+            buff_out << fits[nr * cols + nc] << " ";
+        }
+        buff_out << chisq[nr * 2] << " " << chisq[nr * 2 + 1] <<
+            std::endl;
+    }
+
+    buff_out.close();
+}
