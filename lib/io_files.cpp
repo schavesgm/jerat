@@ -125,16 +125,16 @@ void write_matrix( std::string name_out, Matrix data ) {
 }
 
 void write_vector( std::string name_out, std::vector<double> fits, 
-        std::vector<double> chisq, unsigned t_init ) {
+    unsigned dim_param, unsigned t_init ) {
 
     // In chi_sq there are rows x 2 values (value + error)
-    unsigned rows = chisq.size() / 2;
-    unsigned cols = fits.size() / rows;
+    unsigned cols = ( dim_param + 1 ) * 2;
+    unsigned rows = fits.size() / cols;
 
     std::ofstream buff_out;
 
     buff_out.open( name_out.c_str() );
-    buff_out << "# Window " << cols << "x( Fit + eFit) " << 
+    buff_out << "# Window  - " << cols << "x( Fit + eFit) - " << 
         "Chisq + eChisq" << std::endl;
 
     for ( unsigned nr = 0; nr < rows; nr++ ) {
@@ -142,8 +142,7 @@ void write_vector( std::string name_out, std::vector<double> fits,
         for ( unsigned nc = 0; nc < cols; nc++ ) {
             buff_out << fits[nr * cols + nc] << " ";
         }
-        buff_out << chisq[nr * 2] << " " << chisq[nr * 2 + 1] <<
-            std::endl;
+        buff_out << std::endl;
     }
 
     buff_out.close();

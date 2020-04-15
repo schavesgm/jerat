@@ -11,7 +11,7 @@ cols 3
 
 -- Number of bootstrap iterations
 n_boot 200
-n_fit 2 
+n_fit 10
 
 -- Initial parameters and values to explore in fit
 dim_param 2

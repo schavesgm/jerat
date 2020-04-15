@@ -1,10 +1,12 @@
 #include "fit.hpp"
 
 /* --------------------------------------------------------------- */
-double chi_square( func f, std::vector<double> params, Matrix data ) {
+double chi_square( func f, std::vector<double> params, 
+        Matrix data, std::vector<double> args ) {
 
     try {
-        double trial = f( params, 0.0 );
+        std::vector<double> args = { 0.0 };
+        double trial = f( params, 0.0, args );
     } catch (std::exception& err) {
         std::cout << 
             "The function provided must take as arguments: " <<
@@ -19,7 +21,7 @@ double chi_square( func f, std::vector<double> params, Matrix data ) {
     double aux = 0.0;
 
     for( unsigned i = 0; i < rows; i++ ) {
-        aux = f( params, data.data[i * cols] ) - \
+        aux = f( params, data.data[i * cols], args ) - \
             data.data[i * cols + 1]; 
         chi_sq += std::pow( aux, 2 );
     }
@@ -29,7 +31,8 @@ double chi_square( func f, std::vector<double> params, Matrix data ) {
 /* --------------------------------------------------------------- */
 std::vector<double> fitNM( func f, Matrix data, 
     std::vector<double> start_guess, std::vector<double> expl_vol,
-    const unsigned max_iter, const unsigned seed ) {
+    std::vector<double> args, const unsigned max_iter, 
+    const unsigned seed ) {
 
     // Define the constants of the algorithm
     double alpha = 1.0;
@@ -67,7 +70,7 @@ std::vector<double> fitNM( func f, Matrix data,
     std::vector<double> images_s( dim_simp );
 
     // Initial value of the chi square
-    double image_f = chi_square( f, start_guess, data );
+    double image_f = chi_square( f, start_guess, data, args );
 
     // Generate the random engine and sampler
     std::mt19937 rand_eng;
@@ -103,7 +106,7 @@ std::vector<double> fitNM( func f, Matrix data,
             std::vector<double> slice( 
                 simplex.begin() + i * dim_param, 
                 simplex.begin() + i * dim_param + dim_param );
-            images_s[i] = chi_square( f, slice, data );
+            images_s[i] = chi_square( f, slice, data, args );
         }
 
         // Order the simplex according to the images
@@ -143,7 +146,7 @@ std::vector<double> fitNM( func f, Matrix data,
                 ( centroid[i] - \
                     simplex[(dim_simp - 1) * dim_param + i] );
         }
-        image_refl = chi_square( f, refl_point, data );
+        image_refl = chi_square( f, refl_point, data, args );
 
         if ( images_s[0] <= image_refl && \
             image_refl < images_s[dim_simp-1] ) {
@@ -159,7 +162,7 @@ std::vector<double> fitNM( func f, Matrix data,
                 expa_point[i] = centroid[i] + gamma * \
                     ( refl_point[i] - centroid[i] );
             }
-            image_expa = chi_square( f, expa_point, data );
+            image_expa = chi_square( f, expa_point, data, args );
 
             if ( image_expa < image_refl ) {
                 // Replace the worst point with the expansion
@@ -183,7 +186,7 @@ std::vector<double> fitNM( func f, Matrix data,
                     ( simplex[(dim_simp-1) * dim_param + i] -
                     centroid[i] );
             }
-            image_cont = chi_square( f, cont_point, data );
+            image_cont = chi_square( f, cont_point, data, args );
             if ( image_cont < images_s[dim_simp] ) {
                 // Replace the worst point with the expansion
                 for ( unsigned i = 0; i < dim_param; i++ ) {
@@ -293,39 +296,4 @@ Matrix select_window( Matrix data, unsigned t_beg ) {
         { window_data, window, 2, data.time_extent };
 
     return slice_window;
-}
-
-/* --------------------------------------------------------------- */
-std::vector<double> avg_stde( std::vector<double> data, 
-        unsigned  n_fits ) {
-
-    // Dimensions of the data unrolled
-    unsigned rows = n_fits;
-    unsigned cols = data.size() / rows;
-
-    std::vector<double> res_avg_std( 2 * cols );
-
-    // Calculate the average on the data by column
-    double aux_avg;
-    for ( unsigned nc = 0; nc < cols; nc++ ) {
-        aux_avg = 0.0;
-        for ( unsigned nr = 0; nr < rows; nr++ ) {
-            aux_avg += data[nr * cols + nc];
-        }
-        res_avg_std[nc * 2] = aux_avg / rows;
-    }
-
-    // Calculate the standard deviation on the data by column
-    double aux_std, value;
-    for ( unsigned nc = 0; nc < cols; nc++ ) {
-        aux_std = 0.0;
-        for ( unsigned nr = 0; nr < rows; nr++ ) {
-            value = data[nr * cols + nc] - res_avg_std[nc * 2];
-            aux_std += value * value;
-        }
-        res_avg_std[nc * 2 + 1] = \
-            std::sqrt( aux_std / ( rows - 1 ) );
-    }
-
-    return res_avg_std;
 }

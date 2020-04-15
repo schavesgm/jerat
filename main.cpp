@@ -10,13 +10,6 @@
 #include <math.h>
 #include "fit.hpp"
 
-// Global variable to manage NT
-unsigned NT; 
-double f( std::vector<double> params, double x ) {
-    return params[0] * ( std::exp( - params[1] * x ) + \
-        std::exp( - params[1] * ( NT - x ) ) );
-}
-
 int main() {
 
     // Generate the results folder if it does not exists
@@ -41,6 +34,7 @@ int main() {
     // Read the number of rows
     std::vector<std::string> str_rows = \
         get_key( input_f, "rows" );
+    std::vector<unsigned> un_rows( str_rows.size() );
 
     // Read the number of columns
     std::vector<std::string> str_cols = \
@@ -103,6 +97,7 @@ int main() {
             (aux_ntau);
         ins[ni] = { files[ni].c_str(), u_row, u_col, u_ntau };
         un_n_tau[ni] = aux_ntau;
+        un_rows[ni] = aux_row;
     }
 
     // Generate the object
@@ -111,19 +106,33 @@ int main() {
     // Generate bootstrap and fit unsigneds
     unsigned long aux_boots = std::stoul( str_boots[0] );
     unsigned long aux_fits = std::stoul( str_fits[0] );
-    unsigned n_boots = static_cast<std::make_unsigned<decltype(aux_boots)>::type> (aux_boots);
+    unsigned n_boots = 
+        static_cast<std::make_unsigned<decltype(aux_boots)>::type> 
+        (aux_boots);
     unsigned n_fits = 
         static_cast<std::make_unsigned<decltype(aux_fits)>::type>
         (aux_fits);
 
+
+    // Hierarchy fit ----------------------------------------------
+
+    // Check the order of the temperatures and rows
+    for ( unsigned t = 0; t < un_n_tau.size() - 1; t++ ) {
+        for ( unsigned tp = t + 1; tp < un_n_tau.size(); tp++ ) {
+            assert( un_n_tau[t] < un_n_tau[tp] );
+            assert( un_rows[t] < un_rows[tp] );
+        }
+    }
+
     // Vectors used in the calculation
-    std::vector<std::vector<unsigned>> t_start( num_files );
-    std::vector<std::vector<double>> fit_results( num_files );
-    std::vector<std::vector<double>> chisq_results( num_files );
+    std::vector<std::vector<unsigned>> w_start( num_files );
     std::vector<std::vector<double>> in_params( num_files );
     std::vector<std::vector<double>> in_explor( num_files );
+    std::vector<std::vector<double>> fit_results( num_files );
 
     // Populate the pointers and reserve space
+    unsigned aux_hierarchy = num_files;
+    unsigned size_res;
     for ( unsigned ni = 0; ni < num_files; ni++ ) {
 
         // Create the folder to hold the results for each temperature
@@ -136,13 +145,17 @@ int main() {
 
         // Populate the starting point vector
         for ( unsigned i = start; i < end; i++ )
-            t_start[ni].push_back( i );
+            w_start[ni].push_back( i );
 
-        // Reserve the space for the fit results and chi square
-        fit_results[ni].reserve( 
-            n_fits * t_start[ni].size() * dim_param );
-        chisq_results[ni].reserve(
-            n_fits * t_start[ni].size() );
+        // Reserve the space for fit results and chisq_nt -- For all
+        // temperatures smaller than the one we are using
+        size_res = n_fits * w_start[ni].size() * \
+            aux_hierarchy * ( dim_param  + 1 );
+
+        fit_results[ni].reserve( size_res );
+        fit_results[ni].resize( size_res );
+
+        aux_hierarchy -= 1;
 
         // Allocate the input parameter vectors
         if ( dim_param == str_in_params.size() ) {
@@ -165,115 +178,130 @@ int main() {
         }
     }
 
-    // Iterate trough number of fits
+    // Hierarchy fit algorithm
     for ( unsigned nf = 0; nf < n_fits; nf++ ) {
 
-        // Calculate the bootstrap iteration for this iteration
-        corr_data.bootstrap_central( n_boots );
+        std::vector<std::vector<double>> iter_hier = 
+            fit_hierarchy( corr_data, w_start, in_params, 
+                    in_explor, n_boots );
 
-        // Iterate trough all the files
+        // Feed the data into the results vector
+        unsigned index, sub_index, aux_files;
+        unsigned aux_hier = num_files;
+
         for ( unsigned ni = 0; ni < num_files; ni++ ) {
 
-            // Set the correct NT value
-            NT = un_n_tau[ni];
+            aux_files = 0;
+            unsigned cols = w_start[ni].size() * ( dim_param + 1 );
 
-            // Generate the input data in the correct form
-            double* data_xy = new double[un_n_tau[ni] * 2];
-            for ( unsigned nt = 0; nt < un_n_tau[ni]; nt++ ) {
-                data_xy[nt * 2] = nt;
-                data_xy[nt * 2 + 1] = \
-                    corr_data.boots_central[ni].data[nt * 2];
+            for ( unsigned in = 0; in < cols; in++ ) {
+                index = ( nf * aux_hier + aux_files ) * cols + in;
+                sub_index = aux_files * cols + in;
+                fit_results[ni][index] = iter_hier[ni][sub_index];
             }
-            Matrix data = \
-                { data_xy, un_n_tau[ni], 2, un_n_tau[ni] };
+            aux_files += 1;
 
-            // Iterate through all windows 
-            for ( unsigned wi = 0; wi < t_start[ni].size(); wi++ ) {
-
-                // Crop the data to the window
-                Matrix window = \
-                    select_window( data, t_start[ni][wi] );
-
-                // Fit the data for the current file and window
-                std::vector<double> slice_fit = \
-                    fitNM( f, window, in_params[ni], in_explor[ni] );
-
-                // Feed the data into the results vector
-                int index;
-                for ( unsigned id = 0; id < dim_param; id++ ) {
-                    index = ( nf * t_start[ni].size() + wi ) * \
-                        dim_param + id;
-                    fit_results[ni][index] = slice_fit[id];
+            for ( unsigned nj = ni + 1; nj < num_files; nj++ ) {
+                for ( unsigned in = 0; in < cols; in++ ) {
+                    index = 
+                        ( nf * aux_hier + aux_files ) * cols + in;
+                    sub_index = aux_files * cols + in;
+                    fit_results[ni][index] = \
+                        iter_hier[ni][sub_index];
                 }
-                chisq_results[ni][nf * t_start[ni].size() + wi] = \
-                    slice_fit[slice_fit.size() - 1];
-                
-                // Free the pointers
-                delete[] window.data;
-
-                // Free the vectors
-                slice_fit.clear();
+                aux_files += 1;
             }
-
-            // Free the pointers
-            delete[] data.data;
+            aux_hier -= 1;
         }
+
+        // Free the vectors
+        for ( unsigned i = 0; i < iter_hier.size(); i++ )
+            iter_hier[i].clear();
+        iter_hier.clear();
     }
 
-    // Calculate the average/stde of fits and flush things out
+    // Flush the results out in files and calcualte avg/stde
+    unsigned aux_files, index;
+    unsigned aux_hier = num_files;
+    std::string file_est_out;
+    std::string file_fit_out;
+
     for ( unsigned ni = 0; ni < num_files; ni++ ) {
 
-        // Generate a copy of the fit vector
-        std::vector<double> fits_nt( 
-            n_fits * dim_param * t_start[ni].size() );
-        for ( unsigned i = 0; i < fits_nt.size(); i++ )
-            fits_nt[i] = fit_results[ni][i];
+        // Keep track of rotating files
+        aux_files = 0;
 
-        // Generate a copy of the chi_square results
-        std::vector<double> chisq_nt( 
-            n_fits * t_start[ni].size() );
-        for ( unsigned i = 0; i < chisq_nt.size(); i++ )
-            chisq_nt[i] = chisq_results[ni][i];
-
-        // Calculate the final results for the values
-        std::vector<double> res_avg_std = avg_stde(fits_nt, n_fits);
-        std::vector<double> res_chi_squ = avg_stde(chisq_nt, n_fits);
-
-        // Flush the bootstrap estimation to a file
-        std::string file_est_out;
+        // Flush the correlation function estimate
         file_est_out = "./results/" + n_tau[ni] + "/b_central_" + \
             file_const[0] + n_tau[ni] + "x" + n_space[0] + \
             file_const[1] + "." + str_boots[0] + ".dat";
         write_matrix( file_est_out, corr_data.boots_central[ni] );
 
-        // Flush the fitted parameters out 
-        std::string file_fit_out;
-        file_fit_out = "./results/" + n_tau[ni] + "/fit_" + \
-            file_const[0] + n_tau[ni] + "x" + n_space[0] + \
+        // Generate the name for the fitting file for root ni
+        std::string folder_nt = "./results/" + n_tau[ni];
+        file_fit_out = folder_nt + "/fit_" + file_const[0] + \
+            n_tau[ni] + "x" + n_space[0] + \
             file_const[1] + "." + str_boots[0] + ".dat";
 
-        write_vector( file_fit_out, res_avg_std, res_chi_squ, 
-                t_start[ni][0] );
+        unsigned w_size = w_start[ni].size();
 
-        // Free the vectors
-        fits_nt.clear();
-        chisq_nt.clear();
-        res_avg_std.clear();
-        res_chi_squ.clear();
+        // Select the data to process from results
+        unsigned cols = w_size * ( dim_param + 1 );
+
+        std::vector<double> slice_fits( n_fits * cols );
+        std::vector<double> res_avgstd( cols );
+        
+        for ( unsigned nf = 0; nf < n_fits; nf++ ) {
+            for ( unsigned in = 0; in < cols; in++ ) {
+                index = (nf * aux_hier + aux_files) * cols + in;
+                slice_fits[nf * cols + in] = fit_results[ni][index];
+            }
+        }
+        aux_files += 1;
+
+        // Generate the estimation for the ni values
+        res_avgstd = avg_stde( slice_fits, n_fits );
+        // Flush the data out into the files in folder ni
+        write_vector( file_fit_out, res_avgstd, dim_param, \
+            w_start[ni][0] );
+
+        // Now the same for the subfiles
+        for ( unsigned nj = ni + 1; nj < num_files; nj++ ) {
+
+            // Generate the output file for the subfiles
+            file_fit_out = folder_nt + "/fit_" + file_const[0] + \
+                n_tau[nj] + "x" + n_space[0] + \
+                file_const[1] + "." + str_boots[0] + ".dat";
+
+            for ( unsigned nf = 0; nf < n_fits; nf++ ) {
+                for ( unsigned in = 0; in < cols; in++ ) {
+                    index = (nf * aux_hier + aux_files) * cols + in;
+                    slice_fits[nf * cols + in] = 
+                        fit_results[ni][index];
+                }
+            }
+
+            // Generate the estimation for the nj values
+            res_avgstd = avg_stde( slice_fits, n_fits );
+            // Flush the data out into the files in folder ni
+            write_vector( file_fit_out, res_avgstd, dim_param, \
+                w_start[ni][0] );
+        }
+
+        slice_fits.clear();
+        res_avgstd.clear();
+
+        aux_hier -= 1;
     }
-
-    // Hierarchy fit 
-    for ( unsigned n_tau = 1; n_tau < un_n_tau.size(); n_tau++ )
-        assert( un_n_tau[0] < un_n_tau[n_tau] );
 
     // Free the space for all the vectors of vectors
     for ( unsigned ni = 0; ni < num_files; ni++ ) {
-        t_start[ni].clear();
+        w_start[ni].clear();
         fit_results[ni].clear();
         in_params[ni].clear();
         in_explor[ni].clear();
     }
-    t_start.clear();
+    w_start.clear();
     fit_results.clear();
     in_params.clear();
     in_explor.clear();
@@ -282,6 +310,7 @@ int main() {
     file_const.clear();
     n_tau.clear();
     un_n_tau.clear();
+    un_rows.clear();
     n_space.clear();
     str_rows.clear();
     str_cols.clear();

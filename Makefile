@@ -7,7 +7,7 @@ ROOT := $(shell pwd)
 LIB := $(ROOT)/lib
 INC := $(ROOT)/include
 
-OBJS = main io_files fit utils basics
+OBJS = main io_files fit hier utils basics
 
 all: $(LINK_TARGET) 
 	$(shell rm -rf objs)
@@ -28,6 +28,8 @@ basics: objs
 utils: objs
 	$(CXX) $(CXFLAGS) -o $</corr_$@.o -c lib/corr_$@.cpp \
 	    -I $(INC)
+hier: objs
+	$(CXX) $(CXFLAGS) -o $</$@.o -c lib/$@.cpp -I $(INC)
 
 fit: objs
 	$(CXX) $(CXFLAGS) -o $</$@.o -c lib/$@.cpp -I $(INC)

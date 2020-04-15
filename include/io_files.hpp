@@ -25,7 +25,7 @@ std::vector<unsigned> to_unsigned( std::vector<std::string> );
 void write_matrix( std::string, Matrix );
 
 // Write vector into file
-void write_vector( std::string, std::vector<double>, 
-        std::vector<double>, unsigned );
+void write_vector( std::string, std::vector<double>, unsigned, 
+        unsigned );
 
 #endif
