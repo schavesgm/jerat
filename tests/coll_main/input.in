@@ -1,13 +1,16 @@
+-- Directory where the files are
+dir_in ./coll_main
+
 -- File constant
-file_const Gen2l_ .meson.g5.cc
+file_const fake_ .dat 
 
 -- Temperatures and space length
 n_tau 40 48 56
 n_space 32
 
 -- Properties of the data
-rows 82080 106752 113792
-cols 3
+rows 4000 4800 5600
+cols 2
 
 -- Number of bootstrap iterations
 n_boot 200

@@ -118,20 +118,24 @@ TEST_CASE( "Testing IO", "[IO]" ) {
         std::string file_out = "./coll_IO/out_vector.dat";
 
         // Generate the fake data
+        unsigned wi_start = 2;
         unsigned num_data = 6;
         unsigned dim_param = 2;
         unsigned num_cols = ( dim_param + 1 ) * 2;
-        unsigned t_init = 2;
+
+        std::vector<unsigned> wi_final( num_data );
+        for ( unsigned i = 0; i < wi_final.size(); i++ ) {
+            wi_final[i] = wi_start + 1 + i;
+        }
 
         std::vector<double> results( num_data * num_cols );
-
         for ( unsigned i = 0; i < num_data; i++ ) {
             for ( unsigned j = 0; j < num_cols; j++ ) {
                 results[i * num_cols + j] = i + j;
             }
         }
 
-        write_vector( file_out, results, dim_param, t_init );
+        write_vector( file_out, results, wi_final, wi_start, true );
 
         // Load the data to check it works
         Input input_matrix = 
@@ -144,7 +148,7 @@ TEST_CASE( "Testing IO", "[IO]" ) {
 
         unsigned cols = load_matrix.col_size;
         for ( unsigned i = 0; i < num_data; i++ ) {
-            REQUIRE( load_matrix.data[i * cols] == i + t_init );
+            REQUIRE( load_matrix.data[i * cols] == wi_final[i] );
             for ( unsigned j = 0; j < num_cols; j++ ) {
                 REQUIRE( 
                     load_matrix.data[i * (num_cols + 1) + 1 + j] ==
@@ -154,6 +158,7 @@ TEST_CASE( "Testing IO", "[IO]" ) {
         }
 
         // Free vectors and pointers
+        wi_final.clear();
         results.clear();
         delete[] load_matrix.data;
     }

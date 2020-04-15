@@ -6,5 +6,5 @@ exec_tests
 check.py
 full_tests
 out_*.dat
-results
+./results
 lib/corr
