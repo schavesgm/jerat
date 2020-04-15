@@ -10,13 +10,14 @@
 #include <math.h>
 #include "fit.hpp"
 
-int main() {
+int main( int argc, char** argv ) {
 
     // Generate the results folder if it does not exists
     mkdir("results", 0777); // Where the results are stored
 
     // Read data from input file
-    std::string input_f = "input.in";
+    std::string input_f = argv[1];
+    assert( file_exists( input_f ) );
 
     // Read directory where the input files are
     std::vector<std::string> dir_in = \

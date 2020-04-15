@@ -1,4 +1,4 @@
-LINK_TARGET = prog
+LINK_TARGET = jerat
 
 CXX = g++
 CXFLAGS = -g -W
