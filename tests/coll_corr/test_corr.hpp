@@ -10,8 +10,8 @@ TEST_CASE( "Correlation function class", "[Corr]" ) {
 
     unsigned num_files = 2;
     std::vector<std::string> FILES;
-    FILES.push_back( "../Gen2l_48x32.meson.g5.cc" );
-    FILES.push_back( "../Gen2l_48x32.meson.vec.cc" );
+    FILES.push_back( "./coll_corr/Gen2l_48x32.meson.g5.cc" );
+    FILES.push_back( "./coll_corr/Gen2l_48x32.meson.vec.cc" );
 
     unsigned ROWS[num_files] = { 106752, 3 * 106752 };
     unsigned col_size = 3;
@@ -97,7 +97,7 @@ TEST_CASE( "Correlation function class", "[Corr]" ) {
         REQUIRE( corr.boots_central[1].data[time_extent * 2 - 1] == \
                 Approx( 2.47e-05 ).margin( 0.0001 ) );
     }
-    SECTION( "Test central value -> Average and Variance" ) {
+    SECTION( "Testing central value" ) {
 
         // Create an object
         Correlator corr( ins, num_files );

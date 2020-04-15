@@ -3,13 +3,12 @@ LINK_TARGET = exec_tests
 CXX = g++
 CXFLAGS = -g -W
 
-
 ROOT := $(shell pwd)
 SOURCE_CODE := $(shell cd ../ && pwd)
 INCL = -I $(SOURCE_CODE)/include
 
 # Collection to take care of
-COLS = catch coll_IO coll_fit coll_corr
+COLS = catch coll_IO coll_fit coll_corr coll_main
 
 all: $(LINK_TARGET)
 	$(shell rm -rf objs)
@@ -22,9 +21,13 @@ basics: objs utils
 	@$(CXX) $(CXFLAGS) -o $</$@.o \
 	    -c $(SOURCE_CODE)/lib//corr_$@.cpp $(INCL)
 
-utils: objs fit
+utils: objs hier
 	@$(CXX) $(CXFLAGS) -o $</$@.o \
 	    -c $(SOURCE_CODE)/lib//corr_$@.cpp $(INCL)
+
+hier: objs fit
+	@$(CXX) $(CXFLAGS) -o $</$@.o \
+	    -c $(SOURCE_CODE)/lib//$@.cpp $(INCL)
 
 fit: objs io_files
 	@$(CXX) $(CXFLAGS) -o $</$@.o \

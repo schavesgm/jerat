@@ -7,6 +7,7 @@
 #include "test_io.hpp"
 #include "test_fit.hpp"
 #include "test_corr.hpp"
+#include "test_hier.hpp"
 
 #endif
 

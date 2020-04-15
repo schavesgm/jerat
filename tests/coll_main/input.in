@@ -1,0 +1,22 @@
+-- File constant
+file_const Gen2l_ .meson.g5.cc
+
+-- Temperatures and space length
+n_tau 40 48 56
+n_space 32
+
+-- Properties of the data
+rows 82080 106752 113792
+cols 3
+
+-- Number of bootstrap iterations
+n_boot 200
+n_fit 10
+
+-- Initial parameters and values to explore in fit
+dim_param 2
+in_params 0.5 0.5 
+in_explor 1 1 
+
+-- Initial percentage of the data to include 
+beg_window 0.2
