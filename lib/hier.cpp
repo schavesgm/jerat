@@ -9,140 +9,109 @@ double f( std::vector<double> params, double x,
 std::vector<std::vector<double>> 
     fit_hierarchy( 
         Correlator& corr,
-        std::vector<std::vector<unsigned>> w_start, 
+        std::vector<std::vector<unsigned>> wi_final, 
+        std::vector<unsigned> wi_start, 
         std::vector<std::vector<double>> in_params, 
         std::vector<std::vector<double>> in_explor, 
         unsigned n_boot 
     ) {
 
-
     // Calculate the bootstrap estimation of the correlators
     corr.bootstrap_central( n_boot );
 
     // Get number of temperatures in correlator object
-    unsigned num_temp = corr.num_inputs;
+    unsigned num_files = corr.num_inputs;
     unsigned dim_param = in_params[0].size();
 
     // Vector to hold the results for this iteration
-    std::vector<std::vector<double>> results( num_temp );
+    std::vector<std::vector<double>> results( num_files );
 
     // Auxiliary variables
-    unsigned aux_hierarchy = num_temp;
-    unsigned size_res;
-    unsigned aux_temp;
+    unsigned aux_hierarchy = num_files;
+    unsigned size_to, aux_files;
 
-    // Iterate trough temperatures
-    for ( unsigned to = 0; to < num_temp; to++ ) {
+    // Iterate through main files 
+    for ( unsigned to = 0; to < num_files; to++ ) {
 
-        // Number of total windows in this temeperature
-        unsigned w_size = w_start[to].size();
+        // Number of total windows in this file
+        unsigned num_windows = wi_final[to].size();
 
-        // Fix number of files to allocate the data as expected
-        aux_temp = 0;
-
-        unsigned n_tau = corr.boots_central[to].time_extent;
-        double arg_ntau = corr.boots_central[to].time_extent;
-        std::vector<double> args = { arg_ntau };
-
-        // Allocate space for the vector in this temperature
-        size_res = \
-            w_start[to].size() * aux_hierarchy * ( dim_param + 1);
+        // Allocate the space for the results
+        unsigned size_to = 
+            num_windows * aux_hierarchy * ( dim_param + 1);
+        results[to].reserve( size_to );
+        results[to].resize( size_to );
 
         aux_hierarchy -= 1;
+        aux_files = 0;
 
-        // Reserve the space for this temperature and its subfiles
-        results[to].reserve( size_res );
-        results[to].resize( size_res );
+        // Change the value of Nt in the fit by using arguments
+        unsigned n_tau =
+                corr.boots_central[to].time_extent;
+        double arg_ntau = 
+            corr.boots_central[to].time_extent;
+        std::vector<double> args = { arg_ntau };
 
-        // Generate the input data in the correct form
-        double* xy_to = new double[n_tau * 2];
-        for ( unsigned nt = 0; nt < n_tau; nt++ ) {
-            xy_to[nt * 2] = nt;
-            xy_to[nt * 2 + 1] = \
-                corr.boots_central[to].data[nt * 2];
-            }
-        Matrix data_to = { xy_to, n_tau, 2, n_tau };
+        // Iterate through all the windows in this file
+        for ( unsigned nw = 0; nw < num_windows; nw++ ) {
 
-        // Fit trough all the windows for the current temperature
-        for ( unsigned wi = 0; wi < w_start[to].size(); wi++ ) {
-
-            // Crop the data to the current window
-            Matrix w_data = \
-                select_window( data_to, w_start[to][wi] );
-
-            // Fit the data to that window
-            std::vector<double> window_fit = \
+            // Crop the bootstrap estimation to the window
+            Matrix w_data = select_window( 
+                corr.boots_central[to], 
+                wi_start[to], wi_final[to][nw] );
+            
+            std::vector<double> w_fit = \
                 fitNM( f, w_data, in_params[to], \
-                    in_explor[to], args );
+                in_explor[to], args );
 
-            // Feed the results into the result vector
+            // Feed the data into the vector
             unsigned index;
-            for ( unsigned in = 0; in < window_fit.size(); in++ ) {
-                index = ( aux_temp * w_size + wi ) * \
-                    window_fit.size() + in;
-                results[to][index] = window_fit[in];
+            for ( unsigned in = 0; in < w_fit.size(); in++ ) {
+                index = ( aux_files * num_windows + nw ) * \
+                    w_fit.size() + in;
+                results[to][index] = w_fit[in];
             }
-            // Free the pointers
             delete[] w_data.data;
-
-            // Free the vectors
-            window_fit.clear();
         }
 
-        // Increase in one the file we are allocating now
-        aux_temp += 1;
+        // Keep track of correct allocation of each subfile
+        aux_files += 1;
 
-        // Now fit trough all the other lower temperatures
-        for ( unsigned tf = to + 1; tf < num_temp; tf++ ) {
+        // Now fit all the subfiles
+        for ( unsigned tf = to + 1; tf < num_files; tf++ ) {
 
-            // Generate the proper value of n_tau for each temp
-            unsigned n_tau = corr.boots_central[tf].time_extent;
-            double arg_ntau = corr.boots_central[tf].time_extent;
-            std::vector<double> args = { arg_ntau };
+            // Change the value of Nt in the fit by using arguments
+            unsigned n_tau =
+                    corr.boots_central[tf].time_extent;
+            double arg_ntau = 
+                corr.boots_central[tf].time_extent;
+            args = {  arg_ntau };
 
-            // Generate the input data in the correct form
-            double* xy_tf = new double[n_tau * 2];
-            for ( unsigned nt = 0; nt < n_tau; nt++ ) {
-                xy_tf[nt * 2] = nt;
-                xy_tf[nt * 2 + 1] = \
-                    corr.boots_central[tf].data[nt * 2];
+            // Iterate trough all the windows
+            for ( unsigned nw = 0; nw < num_windows; nw++ ) {
+
+                // Crop the bootstrap estimation to the window
+                Matrix w_data = select_window( 
+                    corr.boots_central[tf], 
+                    wi_start[to], wi_final[to][nw] );
+
+                std::vector<double> w_fit = \
+                    fitNM( f, w_data, in_params[tf], \
+                    in_explor[tf], args );
+
+                // Feed the data into the vector
+                unsigned index;
+                for ( unsigned in = 0; in < w_fit.size(); in++ ) {
+                    index = ( aux_files * num_windows + nw ) * \
+                        w_fit.size() + in;
+                    results[to][index] = w_fit[in];
                 }
-            Matrix data_tf = { xy_tf, n_tau, 2, n_tau };
-
-            // Fit the same window for all lower temperatures 
-            for ( unsigned wi = 0; wi < w_start[to].size(); wi++ ) {
-
-            // Crop the data to the current window
-            Matrix w_data = \
-                select_window( data_tf, w_start[to][wi] );
-
-            // Fit the data to that window
-            std::vector<double> window_fit = \
-                fitNM( f, w_data, in_params[tf], in_explor[tf], 
-                        args );
-
-            // Feed the results into the result vector
-            unsigned index;
-            for ( unsigned in = 0; in < window_fit.size(); in++ ) {
-                index = ( aux_temp * w_size + wi ) * \
-                        window_fit.size() + in;
-                results[to][index] = window_fit[in];
+                delete[] w_data.data;
             }
-            // Free the pointers
-            delete[] w_data.data;
 
-            // Free the vectors
-            window_fit.clear();
-            }
-            // Increase in one the file we are allocating now
-            aux_temp += 1;
-
-            // Free pointers in this scope
-            delete[] data_tf.data;
+            aux_files += 1;
         }
-
-        // Free the pointers
-        delete[] data_to.data;
+        args.clear();
     }
     return results;
 }

@@ -124,12 +124,14 @@ void write_matrix( std::string name_out, Matrix data ) {
     buff_out.close();
 }
 
-void write_vector( std::string name_out, std::vector<double> fits, 
-    unsigned dim_param, unsigned t_init ) {
+void write_vector( 
+    std::string name_out, std::vector<double> fits, 
+    std::vector<unsigned> wi_final, unsigned wi_start,
+    bool test ) {
 
     // In chi_sq there are rows x 2 values (value + error)
-    unsigned cols = ( dim_param + 1 ) * 2;
-    unsigned rows = fits.size() / cols;
+    unsigned rows = wi_final.size();
+    unsigned cols = fits.size() / rows;
 
     std::ofstream buff_out;
 
@@ -138,12 +140,21 @@ void write_vector( std::string name_out, std::vector<double> fits,
         "Chisq + eChisq" << std::endl;
 
     for ( unsigned nr = 0; nr < rows; nr++ ) {
-        buff_out << t_init + nr << " ";
+        // Bool to test the data
+        if ( test ) {
+            buff_out << wi_final[nr] << " ";;
+        } else {
+            buff_out << wi_start << "-" << wi_final[nr] << " ";;
+        }
         for ( unsigned nc = 0; nc < cols; nc++ ) {
             buff_out << fits[nr * cols + nc] << " ";
         }
         buff_out << std::endl;
     }
-
     buff_out.close();
+}
+
+bool file_exists( const std::string& f_name ) {
+  struct stat buffer;   
+  return (stat( f_name.c_str(), &buffer ) == 0); 
 }

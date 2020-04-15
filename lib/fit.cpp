@@ -280,20 +280,31 @@ std::vector<double> get_centroid(
 }
 
 /* --------------------------------------------------------------- */
-Matrix select_window( Matrix data, unsigned t_beg ) {
+Matrix select_window( Matrix data, unsigned t1, unsigned t2 ) {
 
-    // Generate the initial and final values of the window
-    unsigned t_end = data.time_extent - t_beg;
-    unsigned window = t_end - t_beg;
+    // Generate the two parts of the window
+    unsigned t_o1 = t1;
+    unsigned t_f1 = t2;
+    unsigned t_o2 = data.time_extent - t2;
+    unsigned t_f2 = data.time_extent - t1;
+    unsigned num_points = t_f1 - t_o1 + t_f2 - t_o2 + 2;
 
-    double* window_data = new double[window * 2];
-    for ( unsigned i = 0; i < window; i++ ) {
-        window_data[i * 2] = data.data[(i + t_beg) * 2];
-        window_data[i * 2 + 1] = data.data[(i + t_beg) * 2 + 1];
+    double* window_data = new double[num_points * 2];
+    // Select the first half of the data
+    for ( unsigned i = 0; i <= t_f1 - t_o1; i++ ) {
+        window_data[i * 2] = i + t_o1;
+        window_data[i * 2 + 1] = data.data[(i + t_o1) * 2];
+    }
+
+    // Select the second half of the data
+    for ( unsigned i = 0; i <= t_f2 - t_o2; i++ ) {
+        window_data[((t_f1 - t_o1 + 1) + i) * 2] = i + t_o2;
+        window_data[((t_f1 - t_o1 + 1) + i) * 2 + 1] = 
+            data.data[(i + t_o2) * 2];
     }
 
     Matrix slice_window = \
-        { window_data, window, 2, data.time_extent };
-
+        { window_data, num_points, 2, data.time_extent };
     return slice_window;
 }
+

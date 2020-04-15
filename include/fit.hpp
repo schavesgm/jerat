@@ -36,11 +36,12 @@ std::vector<double> get_centroid( std::vector<double>, unsigned );
 // Fit a correlator object in a hierarchy way
 std::vector<std::vector<double>> fit_hierarchy( Correlator&,
         std::vector<std::vector<unsigned>>, 
+        std::vector<unsigned>, 
         std::vector<std::vector<double>>, 
         std::vector<std::vector<double>>, unsigned );
 
-// Select a time window from the Matrix structure starting at unsigned
-Matrix select_window( Matrix, unsigned );
+// Select a time window from the Matrix -- ( [a,b] + [N_t-b, N_t-a] )
+Matrix select_window( Matrix, unsigned, unsigned );
 
 // Calculate the average and standard deviation of different fits
 std::vector<double> avg_stde( std::vector<double>, unsigned );

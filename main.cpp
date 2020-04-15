@@ -18,6 +18,10 @@ int main() {
     // Read data from input file
     std::string input_f = "input.in";
 
+    // Read directory where the input files are
+    std::vector<std::string> dir_in = \
+        get_key( input_f, "dir_in" );
+
     // Read the constant part of the file
     std::vector<std::string> file_const = \
         get_key( input_f, "file_const" );
@@ -66,13 +70,16 @@ int main() {
         get_key( input_f, "beg_window" );
     double beg_window = std::stod( str_beg_window[0] );
 
+    // Assert dimensions
     assert( str_in_explor.size() == str_in_explor.size() );
 
     std::vector<std::string> files;
     std::string f_name;
     for ( unsigned nt = 0; nt < n_tau.size(); nt++ ) {
-        f_name = file_const[0] + n_tau[nt] + "x" + n_space[0] + \
-            file_const[1];
+        f_name = dir_in[0] + "/" + file_const[0] + n_tau[nt] + \
+            "x" + n_space[0] + file_const[1];
+        // Check if the file exists
+        assert( file_exists( f_name ) );
         files.push_back( f_name );
     }
 
@@ -125,31 +132,36 @@ int main() {
     }
 
     // Vectors used in the calculation
-    std::vector<std::vector<unsigned>> w_start( num_files );
+
+    // Initial points of the window for each temperature
+    std::vector<unsigned> wi_start( num_files );
+    // Final points for the window to fit to at each temperatures
+    std::vector<std::vector<unsigned>> wi_final( num_files );
+    // Input parameters volume for all temperatures
     std::vector<std::vector<double>> in_params( num_files );
+    // Input exploration volume for all temperatures
     std::vector<std::vector<double>> in_explor( num_files );
+    // Vector to hold all the results
     std::vector<std::vector<double>> fit_results( num_files );
 
     // Populate the pointers and reserve space
-    unsigned aux_hierarchy = num_files;
-    unsigned size_res;
+    unsigned aux_hierarchy = num_files, size_res;
     for ( unsigned ni = 0; ni < num_files; ni++ ) {
 
         // Create the folder to hold the results for each temperature
         std::string folder_nt = "./results/" + n_tau[ni];
         mkdir( folder_nt.c_str(), 0777 );
 
-        // Get all possible initial times -- Create every time
-        unsigned start = beg_window * un_n_tau[ni];
-        unsigned end = 0.49 * un_n_tau[ni];
+        // Generate all possible windows
+        unsigned t1 = beg_window * un_n_tau[ni];
+        unsigned tf = ( un_n_tau[ni] / 2 ) - 1;
 
-        // Populate the starting point vector
-        for ( unsigned i = start; i < end; i++ )
-            w_start[ni].push_back( i );
+        for ( unsigned ti = t1 + 1; ti <= tf; ti++ )
+            wi_final[ni].push_back( ti );
+        wi_start[ni] = t1;
 
-        // Reserve the space for fit results and chisq_nt -- For all
-        // temperatures smaller than the one we are using
-        size_res = n_fits * w_start[ni].size() * \
+        // Reserve the space for results
+        size_res = n_fits * wi_final[ni].size() * \
             aux_hierarchy * ( dim_param  + 1 );
 
         fit_results[ni].reserve( size_res );
@@ -178,43 +190,42 @@ int main() {
         }
     }
 
-    // Hierarchy fit algorithm
     for ( unsigned nf = 0; nf < n_fits; nf++ ) {
-
+        
+        // Generate an estimation of the fits for all files
         std::vector<std::vector<double>> iter_hier = 
-            fit_hierarchy( corr_data, w_start, in_params, 
-                    in_explor, n_boots );
+            fit_hierarchy( corr_data, wi_final, wi_start, 
+                    in_params, in_explor, n_boots );
 
         // Feed the data into the results vector
         unsigned index, sub_index, aux_files;
         unsigned aux_hier = num_files;
 
-        for ( unsigned ni = 0; ni < num_files; ni++ ) {
-
+        for ( unsigned to = 0; to < num_files; to++ ) {
             aux_files = 0;
-            unsigned cols = w_start[ni].size() * ( dim_param + 1 );
+            unsigned cols = wi_final[to].size() * ( dim_param + 1 );
 
             for ( unsigned in = 0; in < cols; in++ ) {
                 index = ( nf * aux_hier + aux_files ) * cols + in;
                 sub_index = aux_files * cols + in;
-                fit_results[ni][index] = iter_hier[ni][sub_index];
+                fit_results[to][index] = iter_hier[to][sub_index];
             }
             aux_files += 1;
 
-            for ( unsigned nj = ni + 1; nj < num_files; nj++ ) {
+            for ( unsigned tf = to + 1; tf < num_files; tf++ ) {
                 for ( unsigned in = 0; in < cols; in++ ) {
                     index = 
                         ( nf * aux_hier + aux_files ) * cols + in;
                     sub_index = aux_files * cols + in;
-                    fit_results[ni][index] = \
-                        iter_hier[ni][sub_index];
+                    fit_results[to][index] = \
+                        iter_hier[to][sub_index];
                 }
                 aux_files += 1;
             }
             aux_hier -= 1;
         }
 
-        // Free the vectors
+        // Free the vector
         for ( unsigned i = 0; i < iter_hier.size(); i++ )
             iter_hier[i].clear();
         iter_hier.clear();
@@ -226,24 +237,24 @@ int main() {
     std::string file_est_out;
     std::string file_fit_out;
 
-    for ( unsigned ni = 0; ni < num_files; ni++ ) {
+    for ( unsigned to = 0; to < num_files; to++ ) {
 
         // Keep track of rotating files
         aux_files = 0;
 
         // Flush the correlation function estimate
-        file_est_out = "./results/" + n_tau[ni] + "/b_central_" + \
-            file_const[0] + n_tau[ni] + "x" + n_space[0] + \
+        file_est_out = "./results/" + n_tau[to] + "/b_central_" + \
+            file_const[0] + n_tau[to] + "x" + n_space[0] + \
             file_const[1] + "." + str_boots[0] + ".dat";
-        write_matrix( file_est_out, corr_data.boots_central[ni] );
+        write_matrix( file_est_out, corr_data.boots_central[to] );
 
         // Generate the name for the fitting file for root ni
-        std::string folder_nt = "./results/" + n_tau[ni];
+        std::string folder_nt = "./results/" + n_tau[to];
         file_fit_out = folder_nt + "/fit_" + file_const[0] + \
-            n_tau[ni] + "x" + n_space[0] + \
+            n_tau[to] + "x" + n_space[0] + \
             file_const[1] + "." + str_boots[0] + ".dat";
 
-        unsigned w_size = w_start[ni].size();
+        unsigned w_size = wi_final[to].size();
 
         // Select the data to process from results
         unsigned cols = w_size * ( dim_param + 1 );
@@ -254,7 +265,7 @@ int main() {
         for ( unsigned nf = 0; nf < n_fits; nf++ ) {
             for ( unsigned in = 0; in < cols; in++ ) {
                 index = (nf * aux_hier + aux_files) * cols + in;
-                slice_fits[nf * cols + in] = fit_results[ni][index];
+                slice_fits[nf * cols + in] = fit_results[to][index];
             }
         }
         aux_files += 1;
@@ -262,30 +273,32 @@ int main() {
         // Generate the estimation for the ni values
         res_avgstd = avg_stde( slice_fits, n_fits );
         // Flush the data out into the files in folder ni
-        write_vector( file_fit_out, res_avgstd, dim_param, \
-            w_start[ni][0] );
+        write_vector( 
+            file_fit_out, res_avgstd, wi_final[to], wi_start[to] );
 
         // Now the same for the subfiles
-        for ( unsigned nj = ni + 1; nj < num_files; nj++ ) {
+        for ( unsigned tf = to + 1; tf < num_files; tf++ ) {
 
             // Generate the output file for the subfiles
             file_fit_out = folder_nt + "/fit_" + file_const[0] + \
-                n_tau[nj] + "x" + n_space[0] + \
+                n_tau[tf] + "x" + n_space[0] + \
                 file_const[1] + "." + str_boots[0] + ".dat";
 
             for ( unsigned nf = 0; nf < n_fits; nf++ ) {
                 for ( unsigned in = 0; in < cols; in++ ) {
                     index = (nf * aux_hier + aux_files) * cols + in;
                     slice_fits[nf * cols + in] = 
-                        fit_results[ni][index];
+                        fit_results[to][index];
                 }
             }
 
-            // Generate the estimation for the nj values
+            // Generate the estimation for the ni values
             res_avgstd = avg_stde( slice_fits, n_fits );
             // Flush the data out into the files in folder ni
-            write_vector( file_fit_out, res_avgstd, dim_param, \
-                w_start[ni][0] );
+            write_vector( file_fit_out, res_avgstd, 
+                    wi_final[to], wi_start[to] );
+
+            aux_files += 1;
         }
 
         slice_fits.clear();
@@ -296,12 +309,13 @@ int main() {
 
     // Free the space for all the vectors of vectors
     for ( unsigned ni = 0; ni < num_files; ni++ ) {
-        w_start[ni].clear();
+        wi_final[ni].clear();
         fit_results[ni].clear();
         in_params[ni].clear();
         in_explor[ni].clear();
     }
-    w_start.clear();
+    wi_final.clear();
+    wi_start.clear();
     fit_results.clear();
     in_params.clear();
     in_explor.clear();

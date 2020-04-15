@@ -8,7 +8,7 @@
 #include <sstream>          
 #include <iterator>         
 #include <algorithm>
-
+#include <sys/stat.h>
 
 // Load definitions
 #include "defs.hpp"
@@ -21,11 +21,14 @@ std::vector<std::string> get_key( std::string, std::string );
 std::vector<double> to_double( std::vector<std::string> );
 std::vector<unsigned> to_unsigned( std::vector<std::string> );
 
+// Check if a file exists
+bool file_exists(const std::string& );
+
 // Write Matrix into file
 void write_matrix( std::string, Matrix );
 
 // Write vector into file
-void write_vector( std::string, std::vector<double>, unsigned, 
-        unsigned );
+void write_vector( std::string, std::vector<double>, 
+        std::vector<unsigned>, unsigned, bool = false );
 
 #endif
