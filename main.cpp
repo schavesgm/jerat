@@ -15,58 +15,64 @@ int main( int argc, char** argv ) {
     // Generate the results folder if it does not exists
     mkdir("results", 0777); // Where the results are stored
 
-    // Read data from input file
+    // Obtain data from input file
     std::string input_f = argv[1];
     assert( file_exists( input_f ) );
 
-    // Read directory where the input files are
+    // Obtain directory where the input files are
     std::vector<std::string> dir_in = \
         get_key( input_f, "dir_in" );
 
-    // Read the constant part of the file
+    // Obtain constant part of the file
     std::vector<std::string> file_const = \
         get_key( input_f, "file_const" );
 
-    // Read the temperatures
+    // Obtain temperatures
     std::vector<std::string> n_tau = \
         get_key( input_f, "n_tau" );
     std::vector<unsigned> un_n_tau( n_tau.size() );
 
-    // Read the spatial length
+    // Obtain spatial length
     std::vector<std::string> n_space = \
         get_key( input_f, "n_space" );
     
-    // Read the number of rows
+    // Obtain number of rows
     std::vector<std::string> str_rows = \
         get_key( input_f, "rows" );
     std::vector<unsigned> un_rows( str_rows.size() );
 
-    // Read the number of columns
+    // Obtain number of columns
     std::vector<std::string> str_cols = \
         get_key( input_f, "cols" );
 
-    // Read number of bootstrap iterations
+    // Obtain boolean to symmetrice or not
+    std::vector<std::string> str_sym = \
+        get_key( input_f, "symm" );
+    bool symm;
+    std::istringstream(str_sym[0]) >> std::boolalpha >> symm;
+
+    // Obtain number of bootstrap iterations
     std::vector<std::string> str_boots = \
         get_key( input_f, "n_boot" );
 
-    // Read number of fits per file
+    // Obtain number of fits per file
     std::vector<std::string> str_fits = \
         get_key( input_f, "n_fit" );
 
-    // Get number of input parameters
+    // Obtain number of input parameters
     std::vector<std::string> str_dim_param = \
         get_key( input_f, "dim_param" );
     unsigned dim_param = std::stoul( str_dim_param[0] );
 
-    // Read input parameters
+    // Obtain input parameters
     std::vector<std::string> str_in_params = \
         get_key( input_f, "in_params" );
 
-    // Read volume to explore in parameter space
+    // Obtain volume to explore in parameter space
     std::vector<std::string> str_in_explor = \
         get_key( input_f, "in_explor" );
 
-    // Read initial percentage of window to fit
+    // Obtain initial percentage of window to fit
     std::vector<std::string> str_beg_window = \
         get_key( input_f, "beg_window" );
     double beg_window = std::stod( str_beg_window[0] );
@@ -155,10 +161,16 @@ int main( int argc, char** argv ) {
 
         // Generate all possible windows
         unsigned t1 = beg_window * un_n_tau[ni];
-        unsigned tf = ( un_n_tau[ni] / 2 ) - 1;
+        unsigned tf;
+        if ( symm ) {
+            tf = ( un_n_tau[ni] / 2 ) - 1;
+        } else {
+            tf = un_n_tau[ni] - 1;
+        }
 
-        for ( unsigned ti = t1 + 1; ti <= tf; ti++ )
+        for ( unsigned ti = t1 + 1; ti <= tf; ti++ ) {
             wi_final[ni].push_back( ti );
+        }
         wi_start[ni] = t1;
 
         // Reserve the space for results
@@ -196,7 +208,7 @@ int main( int argc, char** argv ) {
         // Generate an estimation of the fits for all files
         std::vector<std::vector<double>> iter_hier = 
             fit_hierarchy( corr_data, wi_final, wi_start, 
-                    in_params, in_explor, n_boots );
+                    in_params, in_explor, n_boots, symm );
 
         // Feed the data into the results vector
         unsigned index, sub_index, aux_files;

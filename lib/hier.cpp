@@ -13,7 +13,7 @@ std::vector<std::vector<double>>
         std::vector<unsigned> wi_start, 
         std::vector<std::vector<double>> in_params, 
         std::vector<std::vector<double>> in_explor, 
-        unsigned n_boot 
+        unsigned n_boot, bool symm 
     ) {
 
     // Calculate the bootstrap estimation of the correlators
@@ -58,7 +58,7 @@ std::vector<std::vector<double>>
             // Crop the bootstrap estimation to the window
             Matrix w_data = select_window( 
                 corr.boots_central[to], 
-                wi_start[to], wi_final[to][nw] );
+                wi_start[to], wi_final[to][nw], symm );
             
             std::vector<double> w_fit = \
                 fitNM( f, w_data, in_params[to], \
@@ -93,7 +93,7 @@ std::vector<std::vector<double>>
                 // Crop the bootstrap estimation to the window
                 Matrix w_data = select_window( 
                     corr.boots_central[tf], 
-                    wi_start[to], wi_final[to][nw] );
+                    wi_start[to], wi_final[to][nw], symm );
 
                 std::vector<double> w_fit = \
                     fitNM( f, w_data, in_params[tf], \
