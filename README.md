@@ -28,7 +28,13 @@ higher (`Nt` smaller) to lower (`Nt` larger).
    1`. 
 4. We fit this value of `Nt` to all the windows defined in the last
    step. If a window is created by using `t_1,t_2`, we will fit from
-   `[t_1 - t_2] U [Nt - t_2, Nt - t_1]`.
+   `[t_1 - t_2] U [Nt - t_2, Nt - t_1]` if the correlation function
+   used is symmetric (`symm true` in the input file). The last value
+   of `t_2` is constrained to be `N_t - a`. In the case of not having
+   any symmetry, i.e, single exponentials, we will fit the data to
+   the following window `[t_1,t_2]`. `t_2` can vary from `t_1 + 1` to
+   `N_t - 1`. This second way is setup by using `symm false` is the 
+   input file.
 5. We fit the same windows for all the lowe temperatures (increasing
    `Nt`). This allows us to compare how the fitted parameters change
    with temperature in a controlled way.
@@ -49,4 +55,4 @@ Running the code is just a matter of using,
 ```
 
 ---
-Created by Sergio Chaves García-Mascaraque -- COVID-19 quarentine
+Sergio Chaves García-Mascaraque -- COVID-19 times.
