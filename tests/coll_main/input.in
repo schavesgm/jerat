@@ -11,6 +11,7 @@ n_space 32
 -- Properties of the data
 rows 4000 4800 5600
 cols 2
+symm true
 
 -- Number of bootstrap iterations
 n_boot 200

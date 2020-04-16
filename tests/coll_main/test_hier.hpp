@@ -46,6 +46,12 @@ TEST_CASE( "Testing Hierarchy fit -- Main", "[Hie]" ) {
     std::vector<std::string> str_cols = \
         get_key( input_f, "cols" );
 
+    // Obtain boolean to symmetrice or not
+    std::vector<std::string> str_sym = \
+        get_key( input_f, "symm" );
+    bool symm;
+    std::istringstream(str_sym[0]) >> std::boolalpha >> symm;
+
     // Read number of bootstrap iterations
     std::vector<std::string> str_boots = \
         get_key( input_f, "n_boot" );
@@ -180,7 +186,7 @@ TEST_CASE( "Testing Hierarchy fit -- Main", "[Hie]" ) {
         // Generate an estimation of the fits for all files
         std::vector<std::vector<double>> iter_hier = 
             fit_hierarchy( corr_data, wi_final, wi_start, 
-                    in_params, in_explor, n_boots );
+                    in_params, in_explor, n_boots, symm );
 
         // Feed the data into the results vector
         unsigned index, sub_index, aux_files;
