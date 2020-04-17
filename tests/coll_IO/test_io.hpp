@@ -135,7 +135,7 @@ TEST_CASE( "Testing IO", "[IO]" ) {
             }
         }
 
-        write_vector( file_out, results, wi_final, wi_start, true );
+        write_vector( file_out, results, wi_final, wi_start );
 
         // Load the data to check it works
         Input input_matrix = 

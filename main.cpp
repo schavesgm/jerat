@@ -134,7 +134,6 @@ int main( int argc, char** argv ) {
     for ( unsigned t = 0; t < un_n_tau.size() - 1; t++ ) {
         for ( unsigned tp = t + 1; tp < un_n_tau.size(); tp++ ) {
             assert( un_n_tau[t] < un_n_tau[tp] );
-            assert( un_rows[t] < un_rows[tp] );
         }
     }
 

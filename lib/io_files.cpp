@@ -126,8 +126,7 @@ void write_matrix( std::string name_out, Matrix data ) {
 
 void write_vector( 
     std::string name_out, std::vector<double> fits, 
-    std::vector<unsigned> wi_final, unsigned wi_start,
-    bool test ) {
+    std::vector<unsigned> wi_final, unsigned wi_start ) {
 
     // In chi_sq there are rows x 2 values (value + error)
     unsigned rows = wi_final.size();
@@ -136,16 +135,12 @@ void write_vector(
     std::ofstream buff_out;
 
     buff_out.open( name_out.c_str() );
+    buff_out << "# " << wi_start << std::endl;
     buff_out << "# Window  - " << cols << "x( Fit + eFit) - " << 
         "Chisq + eChisq" << std::endl;
 
     for ( unsigned nr = 0; nr < rows; nr++ ) {
-        // Bool to test the data
-        if ( test ) {
-            buff_out << wi_final[nr] << " ";;
-        } else {
-            buff_out << wi_start << "-" << wi_final[nr] << " ";;
-        }
+        buff_out << wi_final[nr] << " ";;
         for ( unsigned nc = 0; nc < cols; nc++ ) {
             buff_out << fits[nr * cols + nc] << " ";
         }
