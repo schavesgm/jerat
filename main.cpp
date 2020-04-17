@@ -155,8 +155,10 @@ int main( int argc, char** argv ) {
     for ( unsigned ni = 0; ni < num_files; ni++ ) {
 
         // Create the folder to hold the results for each temperature
-        std::string folder_nt = "./results/" + n_tau[ni] + "/" + \
-            str_beg_window[0];
+        std::string folder_nt = "./results/" + n_tau[ni];
+        mkdir( folder_nt.c_str(), 0777 );
+        folder_nt = "./results/" + n_tau[ni] + "/" + \
+            str_beg_window[0] + "/";
         mkdir( folder_nt.c_str(), 0777 );
 
         // Generate all possible windows
