@@ -155,7 +155,8 @@ int main( int argc, char** argv ) {
     for ( unsigned ni = 0; ni < num_files; ni++ ) {
 
         // Create the folder to hold the results for each temperature
-        std::string folder_nt = "./results/" + n_tau[ni];
+        std::string folder_nt = "./results/" + n_tau[ni] + "/" + \
+            str_beg_window[0];
         mkdir( folder_nt.c_str(), 0777 );
 
         // Generate all possible windows
@@ -255,16 +256,19 @@ int main( int argc, char** argv ) {
         aux_files = 0;
 
         // Flush the correlation function estimate
-        file_est_out = "./results/" + n_tau[to] + "/b_central_" + \
+        file_est_out = "./results/" + n_tau[to] + "/" + 
+            str_beg_window[0] + "/b_central_" + \
             file_const[0] + n_tau[to] + "x" + n_space[0] + \
             file_const[1] + "." + str_boots[0] + ".dat";
         write_matrix( file_est_out, corr_data.boots_central[to] );
 
         // Generate the name for the fitting file for root ni
-        std::string folder_nt = "./results/" + n_tau[to];
+        std::string folder_nt = "./results/" + n_tau[to] + "/" + \
+            str_beg_window[0] + "/";
         file_fit_out = folder_nt + "/fit_" + file_const[0] + \
             n_tau[to] + "x" + n_space[0] + \
-            file_const[1] + "." + str_boots[0] + ".dat";
+            file_const[1] + "." + str_boots[0] + "." + \
+            str_beg_window[0] + ".dat";
 
         unsigned w_size = wi_final[to].size();
 
@@ -294,7 +298,8 @@ int main( int argc, char** argv ) {
             // Generate the output file for the subfiles
             file_fit_out = folder_nt + "/fit_" + file_const[0] + \
                 n_tau[tf] + "x" + n_space[0] + \
-                file_const[1] + "." + str_boots[0] + ".dat";
+                file_const[1] + "." + str_boots[0] + "." + \
+                str_beg_window[0] + ".dat";
 
             for ( unsigned nf = 0; nf < n_fits; nf++ ) {
                 for ( unsigned in = 0; in < cols; in++ ) {
