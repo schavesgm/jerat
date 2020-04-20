@@ -33,15 +33,9 @@ Correlator::~Correlator() {
 void Correlator::central_value( const unsigned col ) {
     /* 
        Method to calculate the central value of the correlation
-       function data coming from simulations.  The central value is
-       defined as,
-
-            \bar{C}(\tau) = 1/N_C \sum_i^{N_C} C_i(\tau)
-        its error is defined as, 
-            Var(\bar{C}(\tau)) = 1/N_C \sum_i^{N_C} (
-                C_i(\tau) - \bar{C}(\tau )^2
-
+       function data coming from simulations.
     */
+
     // Let the code know you have the central value calculated
     this->bool_central = true;
     
@@ -62,21 +56,18 @@ void Correlator::central_value( const unsigned col ) {
 
 
         double* avg_corr = this->avg( slice );
-        double* var_corr = this->var( slice, avg_corr );
-
-        // for ( unsigned i = 0; i < n_tau; i++ )
-        //     std::cout << var_corr[i] << std::endl;
+        double* std_corr = this->std( slice, avg_corr );
 
         double* cent_ni = new double[n_tau * 2];
 
         // Fill a matrix with these values
         for ( unsigned nt = 0; nt < n_tau; nt++ ) {
             cent_ni[nt * 2 + 0] = avg_corr[nt];
-            cent_ni[nt * 2 + 1] = var_corr[nt];
+            cent_ni[nt * 2 + 1] = std_corr[nt];
         }
         this->central[ni] = { cent_ni, n_tau, 2, n_tau };
         delete[] avg_corr;
-        delete[] var_corr;
+        delete[] std_corr;
     }
 }
 
@@ -95,7 +86,7 @@ void Correlator::bootstrap_central( const unsigned nboot,
 
     // Auxiliary variables
     double* avg; 
-    double* var;
+    double* std;
 
     unsigned index, pick_nc;
 
@@ -123,7 +114,7 @@ void Correlator::bootstrap_central( const unsigned nboot,
 
         // Get the average and the variance for each sample
         double* hold_avg = new double[nboot * n_tau]{ 0.0 };
-        double* hold_var = new double[nboot * n_tau]{ 0.0 };
+        double* hold_std = new double[nboot * n_tau]{ 0.0 };
 
         // Run the bootstrap
         for ( unsigned nb = 0; nb < nboot; nb++ ) {
@@ -140,27 +131,27 @@ void Correlator::bootstrap_central( const unsigned nboot,
             resample = { hold_resample, n_configs, n_tau, n_tau };
 
             avg = this->avg( resample );
-            var = this->var( resample, avg );
+            std = this->std( resample, avg );
             
-            // Fill hold_avg and hold_var with this estimations
+            // Fill hold_avg and hold_std with this estimations
             for ( unsigned nt = 0; nt < n_tau; nt++ ) {
                 hold_avg[nb * n_tau + nt] = avg[nt];
-                hold_var[nb * n_tau + nt] = var[nt];
+                hold_std[nb * n_tau + nt] = std[nt];
             }
         }
         // Convert into Matrix 
         Matrix est_avg = { hold_avg, nboot, n_tau, n_tau };
-        Matrix est_var = { hold_var, nboot, n_tau, n_tau };
+        Matrix est_std = { hold_std, nboot, n_tau, n_tau };
 
         // Calculate the average on all the resamples
         double* best_avg = this->avg( est_avg );
-        double* best_var = this->avg( est_var );
+        double* best_std = this->avg( est_std );
 
         // Fill a matrix with these values
         double* best_corr =  new double[n_tau * 2]{ 0.0 };
         for ( unsigned nt = 0; nt < n_tau; nt++ ) {
             best_corr[nt * 2 + 0] = best_avg[nt];
-            best_corr[nt * 2 + 1] = best_var[nt];
+            best_corr[nt * 2 + 1] = best_std[nt];
         }
 
         // Set the matrix 
@@ -168,11 +159,10 @@ void Correlator::bootstrap_central( const unsigned nboot,
 
         // Free space
         delete [] avg;
-        delete [] var;
+        delete [] std;
         delete [] best_avg; 
-        delete [] best_var;
+        delete [] best_std;
         delete [] resample.data;
         delete [] slice.data;
-
     }
 }

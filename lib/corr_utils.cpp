@@ -33,27 +33,27 @@ double* Correlator::avg( Matrix data ) {
     return avg_data;
 }
 
-double* Correlator::var( Matrix data, double* average ) {
+double* Correlator::std( Matrix data, double* average ) {
     /* 
-       Method to calculate the variance of some data given the
+       Method to calculate the std deviation of some data given the
        average.
     */
     unsigned rows = data.row_size;
     unsigned cols = data.col_size;
 
-    double* var_data = new double[cols];
-    double aux_var, value; unsigned index;
+    double* std_data = new double[cols];
+    double aux_std, value; unsigned index;
 
     for ( unsigned nc = 0; nc < cols; nc++ ) {
-        aux_var = 0.0;
+        aux_std = 0.0;
         for ( unsigned nr = 0; nr < rows; nr++ ) {
             index = ( nr * cols + nc );
             value = ( data.data[index] - average[nc] );
-            aux_var += value * value;
+            aux_std += value * value;
         }
-        var_data[nc] = aux_var / rows;
+        std_data[nc] = std::sqrt( aux_std / ( rows - 1 ));
     }
-    return var_data;
+    return std_data;
 }
 
 Matrix Correlator::reshape( 

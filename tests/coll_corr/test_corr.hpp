@@ -71,31 +71,31 @@ TEST_CASE( "Correlation function class", "[Corr]" ) {
         REQUIRE( corr.boots_central[0].data[0] == 
                 Approx( 3.84431 ).margin( 0.00001 ) );
         REQUIRE( corr.boots_central[0].data[1] == 
-                Approx( 0.00159 ).margin( 0.0001 ) );
+                Approx( 0.04059 ).margin( 0.0001 ) );
         REQUIRE( corr.boots_central[1].data[0] == 
                 Approx( -3.58932 ).margin( 0.0001 ) );
         REQUIRE( corr.boots_central[1].data[1] == 
-                Approx( 0.00060 ).margin( 0.0001 ) );
+                Approx( 0.023513 ).margin( 0.0001 ) );
 
         // Check the second values
         REQUIRE( corr.boots_central[0].data[2] == 
                 Approx( 0.745041 ).margin( 0.00001 ) );
         REQUIRE( corr.boots_central[0].data[3] == 
-                Approx( 0.000247 ).margin( 0.0001 ) );
+                Approx( 0.015951 ).margin( 0.0001 ) );
         REQUIRE( corr.boots_central[1].data[2] == 
                 Approx( -0.63389 ).margin( 0.00001 ) );
         REQUIRE( corr.boots_central[1].data[3] == 
-                Approx( 9.61e-05 ).margin( 0.0001 ) );
+                Approx( 0.009353 ).margin( 0.0001 ) );
  
         // Check the last values
         REQUIRE( corr.boots_central[0].data[time_extent * 2 - 2] == \
                 Approx( 0.716315 ).margin( 0.00001 ) );
         REQUIRE( corr.boots_central[0].data[time_extent * 2 - 1] == \
-                Approx( 0.000113 ).margin( 0.0001 ) );
+                Approx( 0.010798 ).margin( 0.0001 ) );
         REQUIRE( corr.boots_central[1].data[time_extent * 2 - 2] == \
                 Approx( -0.61421 ).margin( 0.00001 ) );
         REQUIRE( corr.boots_central[1].data[time_extent * 2 - 1] == \
-                Approx( 2.47e-05 ).margin( 0.0001 ) );
+                Approx( 0.004747 ).margin( 0.0001 ) );
     }
     SECTION( "Testing central value" ) {
 
@@ -117,31 +117,31 @@ TEST_CASE( "Correlation function class", "[Corr]" ) {
         REQUIRE( corr.central[0].data[0] == 
                 Approx( 3.86904 ).margin( 0.00001 ) );
         REQUIRE( corr.central[0].data[1] == 
-                Approx( 0.00528 ).margin( 0.00001 ) );
+                Approx( 0.07270 ).margin( 0.00001 ) );
         REQUIRE( corr.central[1].data[0] == 
                 Approx( -3.60454 ).margin( 0.00001 ) );
         REQUIRE( corr.central[1].data[1] == 
-                Approx( 0.002914 ).margin( 0.00001 ) );
+                Approx( 0.053994 ).margin( 0.00001 ) );
 
         // Check the second values
         REQUIRE( corr.central[0].data[2] == 
-                Approx( 0.741684 ).margin( 0.00001 ) );
+                Approx( 0.741683 ).margin( 0.00001 ) );
         REQUIRE( corr.central[0].data[3] == 
-                Approx( 0.00053 ).margin( 0.00001 ) );
+                Approx( 0.023027 ).margin( 0.00001 ) );
         REQUIRE( corr.central[1].data[2] == 
                 Approx( -0.627362 ).margin( 0.00001 ) );
         REQUIRE( corr.central[1].data[3] == 
-                Approx( 0.000194 ).margin( 0.00001 ) );
+                Approx( 0.0139638 ).margin( 0.00001 ) );
 
         // Check the last values
         REQUIRE( corr.central[0].data[time_extent * 2 - 2] == \
                 Approx( 0.741828 ).margin( 0.00001 ) );
         REQUIRE( corr.central[0].data[time_extent * 2 - 1] == \
-                Approx( 0.000554 ).margin( 0.00001 ) );
+                Approx( 0.023547 ).margin( 0.00001 ) );
         REQUIRE( corr.central[1].data[time_extent * 2 - 2] == \
                 Approx( -0.62737 ).margin( 0.00001 ) );
         REQUIRE( corr.central[1].data[time_extent * 2 - 1] == \
-                Approx( 0.000202 ).margin( 0.00001 ) );
+                Approx( 0.014241 ).margin( 0.00001 ) );
     }
 }
 

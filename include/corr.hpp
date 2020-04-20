@@ -33,7 +33,7 @@ class Correlator {
         bool bool_bootstrap = false;
 
         double* avg( Matrix );
-        double* var( Matrix, double* );
+        double* std( Matrix, double* );
 
         Matrix reshape( Matrix, const unsigned*, const unsigned = 1 );
 
