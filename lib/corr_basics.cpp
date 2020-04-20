@@ -98,7 +98,7 @@ void Correlator::bootstrap_central( const unsigned nboot,
         unsigned n_tau = this->RAW_DATA[ni].time_extent;
 
         // unsigned n_configs = rows / n_tau;
-        unsigned n_configs = 2;
+        unsigned n_configs = rows / n_tau;
 
         // Generate the sampler
         std::uniform_int_distribution<int> sampler(0, n_configs - 1);
