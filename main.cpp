@@ -268,10 +268,16 @@ int main( int argc, char** argv ) {
 
         // Generate the name for the fitting file for root ni
         std::string folder_nt = "./results/" + n_tau[to] + "/";
+
+        double perc_start = \
+            std::round( std::stod( str_beg_window[0] ) * 100 );
+        std::ostringstream sstring; sstring << perc_start;
+        std::string perc_string = sstring.str();
+
         file_fit_out = folder_nt + "/fit_" + file_const[0] + \
             n_tau[to] + "x" + n_space[0] + \
             file_const[1] + "." + str_boots[0] + "." + \
-            str_beg_window[0] + ".dat";
+            perc_string + ".dat";
 
         unsigned w_size = wi_final[to].size();
 
@@ -299,10 +305,15 @@ int main( int argc, char** argv ) {
         for ( unsigned tf = to + 1; tf < num_files; tf++ ) {
 
             // Generate the output file for the subfiles
+            double perc_start = \
+                std::round( std::stod( str_beg_window[0] ) * 100 );
+            std::ostringstream sstring; sstring << perc_start;
+            std::string perc_string = sstring.str();
+
             file_fit_out = folder_nt + "/fit_" + file_const[0] + \
                 n_tau[tf] + "x" + n_space[0] + \
                 file_const[1] + "." + str_boots[0] + "." + \
-                str_beg_window[0] + ".dat";
+                perc_string + ".dat";
 
             for ( unsigned nf = 0; nf < n_fits; nf++ ) {
                 for ( unsigned in = 0; in < cols; in++ ) {
