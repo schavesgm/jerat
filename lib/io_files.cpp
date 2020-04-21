@@ -136,7 +136,7 @@ void write_vector(
 
     buff_out.open( name_out.c_str() );
     buff_out << "# " << wi_start << std::endl;
-    buff_out << "# Window  - " << cols << "x( Fit + eFit) - " << 
+    buff_out << "# Window  - " << cols - 2 << "x( Fit + eFit) - " << 
         "Chisq + eChisq" << std::endl;
 
     for ( unsigned nr = 0; nr < rows; nr++ ) {
