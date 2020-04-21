@@ -59,7 +59,7 @@ std::vector<std::vector<double>>
             Matrix w_data = select_window( 
                 corr.boots_central[to], 
                 wi_start[to], wi_final[to][nw], symm );
-            
+
             std::vector<double> w_fit = \
                 fitNM( f, w_data, in_params[to], \
                 in_explor[to], args );
@@ -94,6 +94,7 @@ std::vector<std::vector<double>>
                 Matrix w_data = select_window( 
                     corr.boots_central[tf], 
                     wi_start[to], wi_final[to][nw], symm );
+
 
                 std::vector<double> w_fit = \
                     fitNM( f, w_data, in_params[tf], \

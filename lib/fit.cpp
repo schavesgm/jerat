@@ -17,8 +17,7 @@ double chi_square( func f, std::vector<double> params,
     unsigned rows = data.row_size;
     unsigned cols = data.col_size;
 
-    double chi_sq = 0.0;
-    double aux = 0.0;
+    double chi_sq = 0.0; double aux = 0.0;
 
     for( unsigned i = 0; i < rows; i++ ) {
         aux = f( params, data.data[i * cols], args ) - \
@@ -99,7 +98,6 @@ std::vector<double> fitNM( func f, Matrix data,
 
     // Start the algorithm
     while ( true ) {
-
 
         // Calculate the image of the simplex
         for ( unsigned i = 0; i < dim_simp; i++ ) {
@@ -206,7 +204,6 @@ std::vector<double> fitNM( func f, Matrix data,
         }
         
     }
-
     // Free the vectors
     centroid.clear();
     refl_point.clear();
@@ -291,7 +288,7 @@ Matrix select_window( Matrix data, unsigned t1,
         unsigned t_o1 = t1;
         unsigned t_f1 = t2;
         unsigned t_o2 = data.time_extent - t2;
-        unsigned t_f2 = data.time_extent - t1;
+        unsigned t_f2 = data.time_extent - t1 - 1;
         num_points = t_f1 - t_o1 + t_f2 - t_o2 + 2;
 
         window_data = new double[num_points * 2];
