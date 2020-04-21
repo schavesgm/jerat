@@ -2,24 +2,25 @@
 dir_in data
 
 -- File constant
-file_const fake_ .dat 
+file_const fake_ .dat
 
 -- Temperatures and space length
-n_tau 40 48 56
+n_tau 40
 n_space 32
 
 -- Properties of the data
-rows 4000 4800 5600
+rows 80
 cols 2
-symm false
+symm true
 
 -- Number of bootstrap iterations
-n_boot 200
-n_fit 10
+n_boot 10
+n_fit 1
+seed 7267
 
 -- Initial parameters and values to explore in fit
 dim_param 2
-in_params 0.5 0.5 
+in_params 0.5 0.5
 in_explor 1 1 
 
 -- Initial percentage of the data to include 

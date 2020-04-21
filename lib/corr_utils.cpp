@@ -44,6 +44,10 @@ double* Correlator::std( Matrix data, double* average ) {
     double* std_data = new double[cols];
     double aux_std, value; unsigned index;
 
+    // for ( unsigned i = 0; i < cols; i++ )
+    //     std::cout << average[i] << " ";
+    // std::cout << std::endl;
+
     for ( unsigned nc = 0; nc < cols; nc++ ) {
         aux_std = 0.0;
         for ( unsigned nr = 0; nr < rows; nr++ ) {

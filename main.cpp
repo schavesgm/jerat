@@ -59,6 +59,11 @@ int main( int argc, char** argv ) {
     std::vector<std::string> str_fits = \
         get_key( input_f, "n_fit" );
 
+    // Get the seed from the input file
+    std::vector<std::string> str_seed = \
+        get_key( input_f, "seed" );
+    unsigned seed = std::stoul( str_seed[0] );
+
     // Obtain number of input parameters
     std::vector<std::string> str_dim_param = \
         get_key( input_f, "dim_param" );
@@ -115,7 +120,7 @@ int main( int argc, char** argv ) {
     }
 
     // Generate the object
-    Correlator corr_data( ins, num_files, 123123123 );
+    Correlator corr_data( ins, num_files, seed );
 
     // Generate bootstrap and fit unsigneds
     unsigned long aux_boots = std::stoul( str_boots[0] );

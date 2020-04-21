@@ -114,7 +114,6 @@ void Correlator::bootstrap_central( const unsigned nboot,
 
         // Get the average and the variance for each sample
         double* hold_avg = new double[nboot * n_tau]{ 0.0 };
-        double* hold_std = new double[nboot * n_tau]{ 0.0 };
 
         // Run the bootstrap
         for ( unsigned nb = 0; nb < nboot; nb++ ) {
@@ -130,39 +129,37 @@ void Correlator::bootstrap_central( const unsigned nboot,
             // Calculate the average of that resample
             resample = { hold_resample, n_configs, n_tau, n_tau };
 
+            // Calculate the average on this resample
             avg = this->avg( resample );
-            std = this->std( resample, avg );
             
-            // Fill hold_avg and hold_std with this estimations
+            // Feed the estimation with the average
             for ( unsigned nt = 0; nt < n_tau; nt++ ) {
                 hold_avg[nb * n_tau + nt] = avg[nt];
-                hold_std[nb * n_tau + nt] = std[nt];
             }
         }
         // Convert into Matrix 
-        Matrix est_avg = { hold_avg, nboot, n_tau, n_tau };
-        Matrix est_std = { hold_std, nboot, n_tau, n_tau };
+        Matrix res_mat = { hold_avg, nboot, n_tau, n_tau };
 
         // Calculate the average on all the resamples
-        double* best_avg = this->avg( est_avg );
-        double* best_std = this->avg( est_std );
+        double* est_avg = this->avg( res_mat );
+        double* est_std = this->std( res_mat, est_avg );
 
         // Fill a matrix with these values
         double* best_corr =  new double[n_tau * 2]{ 0.0 };
         for ( unsigned nt = 0; nt < n_tau; nt++ ) {
-            best_corr[nt * 2 + 0] = best_avg[nt];
-            best_corr[nt * 2 + 1] = best_std[nt];
+            best_corr[nt * 2 + 0] = est_avg[nt];
+            best_corr[nt * 2 + 1] = est_std[nt];
         }
 
         // Set the matrix 
         this->boots_central[ni] = { best_corr, n_tau, 2, n_tau };
 
         // Free space
-        delete [] avg;
-        delete [] std;
-        delete [] best_avg; 
-        delete [] best_std;
-        delete [] resample.data;
-        delete [] slice.data;
+        delete[] avg;
+        delete[] res_mat.data;
+        delete[] est_avg; 
+        delete[] est_std;
+        delete[] resample.data;
+        delete[] slice.data;
     }
 }

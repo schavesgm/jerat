@@ -71,31 +71,31 @@ TEST_CASE( "Correlation function class", "[Corr]" ) {
         REQUIRE( corr.boots_central[0].data[0] == 
                 Approx( 3.86904 ).margin( 0.00001 ) );
         REQUIRE( corr.boots_central[0].data[1] == 
-                Approx( 0.07266 ).margin( 0.0001 ) );
+                Approx( 0.00152 ).margin( 0.0001 ) );
         REQUIRE( corr.boots_central[1].data[0] == 
                 Approx( -3.60446 ).margin( 0.0001 ) );
         REQUIRE( corr.boots_central[1].data[1] == 
-                Approx( 0.05390 ).margin( 0.0001 ) );
+                Approx( 0.000632 ).margin( 0.0001 ) );
 
         // Check the second values
         REQUIRE( corr.boots_central[0].data[2] == 
                 Approx( 0.741708 ).margin( 0.00001 ) );
         REQUIRE( corr.boots_central[0].data[3] == 
-                Approx( 0.023005 ).margin( 0.0001 ) );
+                Approx( 0.000473 ).margin( 0.0001 ) );
         REQUIRE( corr.boots_central[1].data[2] == 
                 Approx( -0.62736 ).margin( 0.00001 ) );
         REQUIRE( corr.boots_central[1].data[3] == 
-                Approx( 0.013949 ).margin( 0.0001 ) );
+                Approx( 0.000177 ).margin( 0.0001 ) );
  
         // Check the last values
         REQUIRE( corr.boots_central[0].data[time_extent * 2 - 2] == \
                 Approx( 0.741873 ).margin( 0.00001 ) );
         REQUIRE( corr.boots_central[0].data[time_extent * 2 - 1] == \
-                Approx( 0.023552 ).margin( 0.0001 ) );
+                Approx( 0.000488 ).margin( 0.0001 ) );
         REQUIRE( corr.boots_central[1].data[time_extent * 2 - 2] == \
                 Approx( -0.62735 ).margin( 0.00001 ) );
         REQUIRE( corr.boots_central[1].data[time_extent * 2 - 1] == \
-                Approx( 0.014223 ).margin( 0.0001 ) );
+                Approx( 0.000174 ).margin( 0.0001 ) );
     }
     SECTION( "Testing central value" ) {
 
